@@ -7,9 +7,6 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     dir: 'gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel'
     args: ['build', '-t', 'us-docker.pkg.dev/${PROJECT_ID}/${_BUILD_REGIST}/stable-diffusion-${_BUILD_MODEL}', '.']
-  - name: ubuntu
-    dir: 'gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel'
-    args: ['ls', '-al']
 images: ['us-docker.pkg.dev/${PROJECT_ID}/${_BUILD_REGIST}/stable-diffusion-${_BUILD_MODEL}']
 substitutions:
   _BUILD_REPO: $(body.message.buildrepo)

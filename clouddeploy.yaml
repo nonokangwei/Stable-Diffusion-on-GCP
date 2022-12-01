@@ -15,4 +15,4 @@ metadata:
  name: prod
 description: production cluster
 gke:
- cluster: projects/cliu201/locations/us-east1-b/clusters/sdspot
+ cluster: projects/<project_id>/locations/<region>/clusters/<cluster_name>

@@ -61,10 +61,10 @@ one of the public available Stable Diffusion model is [HuggingFace](https://hugg
 
 ```
 BUILD_BUCKET=<replace this with your bucket name>
-gcloud storage buckets create gs://${BUCKET_NAME} --location=${REGION}
+gcloud storage buckets create gs://${BUCKET_NAME} --location=${REGION} 
 ```
 
-Suggest you can refer the GCS path pattern gs://${BUCKET_NAME}/${MODEL_NAME}/model.ckpt. ${MODEL_NAME} can name like stablediffusion.
+Suggest you can refer the GCS path pattern gs://\${BUCKET_NAME}/\${MODEL_NAME}/model.ckpt. ${MODEL_NAME} can name like stablediffusion.
 
 [Guide](https://cloud.google.com/storage/docs/uploading-objects) of upload file to the GCS bucket path you create. 
 

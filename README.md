@@ -53,7 +53,7 @@ git clone ${BUILD_REPO}
 
 cd gcp-stable-diffusion-build-deploy/
 
-gcloud alpha builds triggers create webhook --name=stable-diffusion-build-trigger --inline-config=clouddeploy.yaml --secret=projects/${PROJECT_ID}/secrets/webhook-secret/versions/1
+gcloud alpha builds triggers create webhook --name=stable-diffusion-build-trigger --inline-config=cloudbuild.yaml --secret=projects/${PROJECT_ID}/secrets/webhook-secret/versions/1
 ```
 
 ### Prepare Stable Diffusion Model

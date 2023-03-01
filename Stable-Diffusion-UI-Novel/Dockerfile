@@ -6,7 +6,8 @@ RUN set -ex && \
 
 RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 
-RUN cd stable-diffusion-webui
+RUN wget https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors -O \
+    /stable-diffusion-webui/models/Stable-diffusion/v1-5-pruned-emaonly.safetensors
 
 COPY model.ckpt /stable-diffusion-webui/models/Stable-diffusion/
 
@@ -23,14 +24,15 @@ RUN set -ex && cd stable-diffusion-webui \
     && pip install transformers diffusers invisible-watermark --prefer-binary \
     && pip install git+https://github.com/crowsonkb/k-diffusion.git --prefer-binary \
     && pip install git+https://github.com/TencentARC/GFPGAN.git --prefer-binary \
-    && pip install git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b --prefer-binary \
+    && pip install git+https://github.com/mlfoundations/open_clip.git --prefer-binary \
     && pip install -r repositories/CodeFormer/requirements.txt --prefer-binary \
-    && pip install -r requirements.txt  --prefer-binary \
-    && pip install -U "numpy<1.24"  --prefer-binary
+    && pip install -r requirements.txt  --prefer-binary
 
-RUN pip install opencv-contrib-python-headless opencv-python-headless
+RUN pip install opencv-contrib-python-headless opencv-python-headless xformers
 RUN pip install --upgrade fastapi==0.90.1
+RUN cp /stable-diffusion-webui/repositories/CodeFormer/basicsr/utils/misc.py \
+    /usr/local/lib/python3.10/dist-packages/basicsr/utils/misc.py
 
 EXPOSE 7860
 
-CMD ["python3", "/stable-diffusion-webui/webui.py", "--listen"]
+CMD ["python3", "/stable-diffusion-webui/webui.py", "--listen", "--xformers",  "--medvram"]

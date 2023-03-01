@@ -35,4 +35,5 @@ RUN cp /stable-diffusion-webui/repositories/CodeFormer/basicsr/utils/misc.py \
 
 EXPOSE 7860
 
-CMD ["python3", "/stable-diffusion-webui/webui.py", "--listen", "--xformers",  "--medvram"]
+WORKDIR /stable-diffusion-webui/
+CMD ["python3", "webui.py", "--listen", "--xformers",  "--medvram"]

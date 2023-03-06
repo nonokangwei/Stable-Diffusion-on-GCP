@@ -10,6 +10,7 @@ RUN wget https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5
     /stable-diffusion-webui/models/Stable-diffusion/v1-5-pruned-emaonly.safetensors
 
 COPY model.ckpt /stable-diffusion-webui/models/Stable-diffusion/
+ADD sd_dreambooth_extension /stable-diffusion-webui/extensions/sd_dreambooth_extension
 
 RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 
 
@@ -26,7 +27,7 @@ RUN set -ex && cd stable-diffusion-webui \
     && pip install git+https://github.com/TencentARC/GFPGAN.git --prefer-binary \
     && pip install git+https://github.com/mlfoundations/open_clip.git --prefer-binary \
     && pip install -r repositories/CodeFormer/requirements.txt --prefer-binary \
-    && pip install -r requirements.txt  --prefer-binary
+    && pip install -r requirements.txt --prefer-binary
 
 RUN pip install opencv-contrib-python-headless opencv-python-headless xformers
 RUN pip install --upgrade fastapi==0.90.1

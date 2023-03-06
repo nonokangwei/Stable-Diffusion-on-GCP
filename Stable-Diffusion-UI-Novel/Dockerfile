@@ -36,6 +36,8 @@ RUN pip install --upgrade fastapi==0.90.1
 RUN cp /stable-diffusion-webui/repositories/CodeFormer/basicsr/utils/misc.py \
     /usr/local/lib/python3.10/dist-packages/basicsr/utils/misc.py
 
+ENV LD_LIBRARY_PATH /usr/local/cuda-12.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
+
 EXPOSE 7860
 
 WORKDIR /stable-diffusion-webui/

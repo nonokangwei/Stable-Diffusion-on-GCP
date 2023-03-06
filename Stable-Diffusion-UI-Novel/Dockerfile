@@ -12,7 +12,9 @@ RUN wget https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5
 COPY model.ckpt /stable-diffusion-webui/models/Stable-diffusion/
 ADD sd_dreambooth_extension /stable-diffusion-webui/extensions/sd_dreambooth_extension
 
-RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 
+RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+
+RUN pip install -r /stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt
 
 RUN set -ex && cd stable-diffusion-webui \
     && mkdir repositories \

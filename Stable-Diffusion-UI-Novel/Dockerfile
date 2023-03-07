@@ -36,9 +36,11 @@ RUN pip install --upgrade fastapi==0.90.1
 RUN cp /stable-diffusion-webui/repositories/CodeFormer/basicsr/utils/misc.py \
     /usr/local/lib/python3.10/dist-packages/basicsr/utils/misc.py
 
-ENV LD_LIBRARY_PATH /usr/local/cuda-12.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
+# ENV LD_LIBRARY_PATH /usr/local/cuda-12.0/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
+# RUN ln -s /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so.12.0.146 \
+#     /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so
 RUN ln -s /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so.12.0.146 \
-    /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so
+    /usr/local/nvidia/lib64/libcudart.so
 
 RUN pip install -U bitsandbytes --prefer-binary
 

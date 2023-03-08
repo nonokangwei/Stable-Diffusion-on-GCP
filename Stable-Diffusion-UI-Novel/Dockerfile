@@ -1,12 +1,16 @@
-FROM nvidia/cuda:12.0.1-runtime-ubuntu22.04
+# FROM nvidia/cuda:12.0.1-runtime-ubuntu22.04
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
-    apt install -y wget git python3 python3-venv python3-pip
+    apt install -y wget git python3 python3-venv python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-12.0/targets/x86_64-linux/lib
-RUN ln -s /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so.12.0.146 \
-    /usr/local/cuda-12.0/targets/x86_64-linux/lib/libcudart.so
+# ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda-12.0/targets/x86_64-linux/lib
+# RUN ln -s /usr/local/cuda-11.8/targets/x86_64-linux/lib/libcudart.so.12.0.146 \
+#     /usr/local/cuda-11.8/targets/x86_64-linux/lib/libcudart.so
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/lib64
+RUN ln -s /usr/local/cuda/lib64/libcudart.so.11.0 /usr/local/cuda/lib64/libcudart.so
 
 RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 
@@ -40,7 +44,7 @@ RUN cp /stable-diffusion-webui/repositories/CodeFormer/basicsr/utils/misc.py \
 
 RUN pip install -r /stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt --prefer-binary
 
-RUN pip install -U bitsandbytes --prefer-binary
+# RUN pip install -U bitsandbytes --prefer-binary
 
 EXPOSE 7860
 

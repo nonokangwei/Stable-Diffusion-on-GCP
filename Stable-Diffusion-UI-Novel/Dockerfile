@@ -15,7 +15,7 @@ ADD sd_dreambooth_extension /stable-diffusion-webui/extensions/sd_dreambooth_ext
 # RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
 RUN pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
 
-RUN pip install -r /stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt --prefer-binary
+# RUN pip install -r /stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt --prefer-binary
 
 RUN set -ex && cd stable-diffusion-webui \
     && mkdir repositories \

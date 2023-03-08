@@ -40,7 +40,7 @@ RUN cp /stable-diffusion-webui/repositories/CodeFormer/basicsr/utils/misc.py \
 
 RUN pip install -r /stable-diffusion-webui/extensions/sd_dreambooth_extension/requirements.txt --prefer-binary
 
-# RUN pip install -U bitsandbytes --prefer-binary
+RUN pip install -U bitsandbytes --prefer-binary
 
 EXPOSE 7860
 

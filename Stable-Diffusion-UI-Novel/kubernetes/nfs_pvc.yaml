@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: sdpvc
+  name: vol1
 spec:
   accessModes:
   - ReadWriteMany

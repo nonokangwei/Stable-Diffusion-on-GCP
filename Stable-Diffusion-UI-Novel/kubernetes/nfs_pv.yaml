@@ -8,5 +8,5 @@ spec:
   accessModes:
   - ReadWriteMany
   nfs:
-    path: /sdpvc
-    server: 172.16.128.2
+    path: /vol1
+    server: 10.150.39.10

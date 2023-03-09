@@ -8,5 +8,5 @@ spec:
   accessModes:
   - ReadWriteMany
   nfs:
-    path: /sdpvc
-    server: 172.16.128.2
+    path: $fileshare_path # e.g. /sdpvc
+    server: $filestore_instance_ip # e.g. 172.168.1.1

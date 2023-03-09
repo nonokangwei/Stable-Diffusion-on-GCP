@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: sdpvc
+  name: $fileshare_name # e.g. sdpvc
 spec:
   accessModes:
   - ReadWriteMany

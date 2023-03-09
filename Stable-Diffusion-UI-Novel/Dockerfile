@@ -10,8 +10,8 @@ RUN ln -s /usr/local/cuda/lib64/libcudart.so.11.0 /usr/local/cuda/lib64/libcudar
 
 RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
 
-RUN wget https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors -O \
-    /stable-diffusion-webui/models/Stable-diffusion/v1-5-pruned-emaonly.safetensors
+# RUN wget https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.safetensors -O \
+#     /stable-diffusion-webui/models/Stable-diffusion/v1-5-pruned-emaonly.safetensors
 
 # COPY model.ckpt /stable-diffusion-webui/models/Stable-diffusion/
 # ADD sd_dreambooth_extension /stable-diffusion-webui/extensions/sd_dreambooth_extension

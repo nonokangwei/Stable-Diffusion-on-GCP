@@ -90,3 +90,30 @@ gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --t
 gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
 
 ```
+
+### Enable Node Pool Autoscale
+Set the Node pool with cluster autoscale(CA) capability, when the horizonal pod autocale feature scale up the pod replica size, it will trigger the node pool scale out to provide required GPU resource.
+```
+gcloud container clusters update ${GKE_CLUSTER_NAME} \
+    --enable-autoscaling \
+    --node-pool=default-pool \
+    --min-nodes=0 \
+    --max-nodes=5 \
+    --region=${REGION}
+```
+
+### Enable Horizonal Pod Autoscale(HPA)
+Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
+```
+kubectl create clusterrolebinding cluster-admin-binding \
+    --clusterrole cluster-admin --user "$(gcloud config get-value account)"
+```
+
+```
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml
+```
+
+Deploy horizonal pod autoscale policy on the stable-diffusion deployment
+```
+kubectl apply -f ./Stable-Diffusion-UI-Novel/autoscale/hap.yaml
+```

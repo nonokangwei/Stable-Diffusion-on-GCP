@@ -17,22 +17,19 @@ spec:
       volumes:
         - name: stable-diffusion-storage
           persistentVolumeClaim:
-            claimName: vol1
+            claimName: pvc-stable-diffusion-storage
       containers:
       - name: stable-diffusion-webui
-        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.1
+        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.7
         resources:
           limits:
             nvidia.com/gpu: 1
         ports:
           - containerPort: 7860
         volumeMounts:
-          - mountPath: "/stable-diffusion-webui/models"
-            name: stable-diffusion-storage
-            subPath: models
-          - mountPath: "/stable-diffusion-webui/outputs"
+          - mountPath: "/outputs"
             name: stable-diffusion-storage
             subPath: outputs
-          - mountPath: "/stable-diffusion-webui/inputs"
+          - mountPath: "/log"
             name: stable-diffusion-storage
-            subPath: inputs
+            subPath: log

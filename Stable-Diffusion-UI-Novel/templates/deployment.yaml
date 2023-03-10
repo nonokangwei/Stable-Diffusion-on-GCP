@@ -17,10 +17,10 @@ spec:
       volumes:
         - name: stable-diffusion-storage
           persistentVolumeClaim:
-            claimName: vol1
+            claimName: $fileshare_name # replace with fileshare name
       containers:
       - name: stable-diffusion-webui
-        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.1
+        image: $image_url # e.g. us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.1
         resources:
           limits:
             nvidia.com/gpu: 1

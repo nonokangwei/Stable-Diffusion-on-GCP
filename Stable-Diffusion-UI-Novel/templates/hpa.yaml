@@ -12,7 +12,7 @@ spec:
           name: kubernetes.io|container|accelerator|duty_cycle
           selector:
             matchLabels:
-              resource.labels.namespace_name: default
+              resource.labels.namespace_name: $namespace # replace with namespace for HPA
         target:
           type: AverageValue
           averageValue: 80

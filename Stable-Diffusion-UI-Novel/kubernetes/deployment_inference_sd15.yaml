@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stable-diffusion-deployment
+  name: stable-diffusion-inference-sd15-deployment
   labels:
-    app: stable-diffusion
+    app: stable-diffusion-inference-sd15
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: stable-diffusion
+      app: stable-diffusion-inference-sd15
   template:
     metadata:
       labels:
-        app: stable-diffusion
+        app: stable-diffusion-inference-sd15
     spec:
       volumes:
         - name: stable-diffusion-storage
@@ -27,12 +27,9 @@ spec:
         ports:
           - containerPort: 7860
         volumeMounts:
-          - mountPath: "/stable-diffusion-webui/models"
+          - mountPath: "/stable-diffusion-webui/models/Stable-diffusion"
             name: stable-diffusion-storage
-            subPath: models
+            subPath: model_sd15
           - mountPath: "/stable-diffusion-webui/outputs"
             name: stable-diffusion-storage
             subPath: outputs
-          - mountPath: "/stable-diffusion-webui/inputs"
-            name: stable-diffusion-storage
-            subPath: inputs

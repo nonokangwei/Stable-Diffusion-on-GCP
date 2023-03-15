@@ -135,7 +135,8 @@ Instead of building image for each model, we are using one image with share stor
 Please refer to the deployment_*.yaml for reference
 
 You folders structure could probably like this in your Filestore share
-/models/Stable-diffusion <--- This is where SD webui looking for models, support models inside a folder
+```
+/models/Stable-diffusion # <--- This is where SD webui looking for models, support models inside a folder
 |-- nai
 |   |-- nai.ckpt
 |   |-- nai.vae.pt
@@ -143,7 +144,7 @@ You folders structure could probably like this in your Filestore share
 |-- sd15
 |   `-- v1-5-pruned-emaonly.safetensors
 
-/inputs/ <--- for training images, only use it when running train job from UI(sd_dreammbooth_extension)
+/inputs/ # <--- for training images, only use it when running train job from UI(sd_dreammbooth_extension)
 |-- alvan-nee-cropped
 |   |-- alvan-nee-9M0tSjb-cpA-unsplash_cropped.jpeg
 |   |-- alvan-nee-Id1DBHv4fbg-unsplash_cropped.jpeg
@@ -151,7 +152,7 @@ You folders structure could probably like this in your Filestore share
 |   |-- alvan-nee-brFsZ7qszSY-unsplash_cropped.jpeg
 |   `-- alvan-nee-eoqnr8ikwFE-unsplash_cropped.jpeg
 
-/outputs/ <--- for generated images
+/outputs/ # <--- for generated images
 |-- img2img-grids
 |   `-- 2023-03-14
 |       |-- grid-0000.png
@@ -161,3 +162,4 @@ You folders structure could probably like this in your Filestore share
 |       |-- 00000-425382929.png
 |       |-- 00001-631481262.png
 |       |-- 00002-1301840995.png
+```

@@ -26,7 +26,7 @@ spec:
         image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:inference
         resources:
           limits:
-            cpu: 2000m
+            cpu: 1800m
             memory: 22Gi
             nvidia.com/gpu: 1
         ports:

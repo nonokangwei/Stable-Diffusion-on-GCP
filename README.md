@@ -17,9 +17,9 @@ you can use the cloud shell as the run time to do below steps.
 gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com
 ```
 ### Create GKE Cluster
-do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus).
-In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing.
-We will also enable [GPU time sharing](https://cloud.google.com/kubernetes-engine/docs/how-to/timesharing-gpus#enable-cluster) to optimize GPU utilization for inference workload.
+Do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus). \
+In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing. \
+We will also enable [GPU time sharing](https://cloud.google.com/kubernetes-engine/docs/how-to/timesharing-gpus#enable-cluster) to optimize GPU utilization for inference workload. \
 We used a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod.
 
 ```

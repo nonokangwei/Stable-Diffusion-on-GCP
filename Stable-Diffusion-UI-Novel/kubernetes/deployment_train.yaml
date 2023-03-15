@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stable-diffusion-training-deployment
+  name: stable-diffusion-train-deployment
   labels:
-    app: stable-diffusion-training
+    app: stable-diffusion-train
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: stable-diffusion-training
+      app: stable-diffusion-train
   template:
     metadata:
       labels:
-        app: stable-diffusion-training
+        app: stable-diffusion-train
     spec:
       volumes:
         - name: stable-diffusion-storage

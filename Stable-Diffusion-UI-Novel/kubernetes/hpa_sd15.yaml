@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: stable-diffusion-hpa-train
+  name: stable-diffusion-hpa-sd15
 spec:
   minReplicas: 1
   maxReplicas: 30
@@ -19,4 +19,4 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: "stable-diffusion-train-deployment"
+    name: "stable-diffusion-sd15-deployment"

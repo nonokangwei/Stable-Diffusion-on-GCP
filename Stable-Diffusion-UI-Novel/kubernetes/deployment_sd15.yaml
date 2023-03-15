@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stable-diffusion-inference-nai-deployment
+  name: stable-diffusion-sd15-deployment
   labels:
-    app: stable-diffusion-inference-nai
+    app: stable-diffusion-sd15
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: stable-diffusion-inference-nai
+      app: stable-diffusion-sd15
   template:
     metadata:
       labels:
-        app: stable-diffusion-inference-nai
+        app: stable-diffusion-sd15
     spec:
       volumes:
         - name: stable-diffusion-storage
@@ -29,10 +29,7 @@ spec:
         volumeMounts:
           - mountPath: "/stable-diffusion-webui/models/Stable-diffusion"
             name: stable-diffusion-storage
-            subPath: models/Stable-diffusion/nai
-          - mountPath: "/stable-diffusion-webui/models/Lora"
-            name: stable-diffusion-storage
-            subPath: models/Lora
+            subPath: models/Stable-diffusion/sd15
           - mountPath: "/stable-diffusion-webui/outputs"
             name: stable-diffusion-storage
             subPath: outputs

@@ -5,6 +5,6 @@ Stable-Diffusion-UI-Novel/sd_dreambooth_extension
 Training/**
 !Training/*.py
 !Training/*.md
-
-Preprocess/mydog/
-Preprocess/mydog_cropped/
+Preprocess**
+!Preprocess/*.py
+!Preprocess/*.md

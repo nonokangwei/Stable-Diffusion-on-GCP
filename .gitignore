@@ -2,6 +2,9 @@ build-.json
 script.sh
 Stable-Diffusion-UI-Novel/model.ckpt
 Stable-Diffusion-UI-Novel/sd_dreambooth_extension
-Training/
+Training/**
+!Training/*.py
+!Training/*.md
+
 Preprocess/mydog/
 Preprocess/mydog_cropped/

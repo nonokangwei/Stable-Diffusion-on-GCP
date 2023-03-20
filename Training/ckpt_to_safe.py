@@ -10,6 +10,7 @@
 # python convert_to_safe.py
 
 import os
+import traceback
 import torch
 from safetensors.torch import save_file
 
@@ -33,5 +34,6 @@ for f in files:
                 save_file(weights, fn)
         except Exception as ex:
             print(f'ERROR converting {f}: {ex}')
+            print(traceback.format_exc())
 
 print('Done!')

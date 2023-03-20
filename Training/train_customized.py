@@ -2,18 +2,37 @@ from glob import glob
 import argparse
 
 import os
+import pathlib
+import traceback
 os.getcwd()
+
+import torch
+from safetensors.torch import save_file
 
 # TODO
 # 1. adjust arguments according to available VRAM
 # 2. adjust arguments according to instance images number/person/object training
 # 3. adjust arguments according to input folder/file type
 
-MODELS_DIR = '/mnt/vol1/models/Stable-diffusion/'
+# MODELS_DIR = '/mnt/vol1/models/Stable-diffusion/'
 
 
 def parse_args(input_args=None):
     parser = argparse.ArgumentParser(description="Simple example of a training script.")
+    parser.add_argument(
+        "--auto_guess",
+        action="store_true",
+        help=(
+            "Auto guess the best parameters according to input image numbers, available vram, and more"
+        ),
+    )
+    parser.add_argument(
+        "--models_dir",
+        type=str,
+        default=None,
+        required=True,
+        help="Path to dump the trained model",
+    )
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
@@ -302,14 +321,6 @@ def parse_args(input_args=None):
             " https://pytorch.org/docs/stable/generated/torch.optim.Optimizer.zero_grad.html"
         ),
     )
-    #
-    parser.add_argument(
-        "--auto_guess",
-        action="store_true",
-        help=(
-            "Auto guess the best parameters according to input image numbers, available vram, and more"
-        ),
-    )
 
     if input_args is not None:
         args = parser.parse_args(input_args)
@@ -447,8 +458,26 @@ args = parse_args()
 basename = None
 if os.path.isfile(args.pretrained_model_name_or_path):
     file = args.pretrained_model_name_or_path
-    basename = file.split('/')[-1].split('.')[0]
-    file_extension = file.split('/')[-1].split('.')[-1]
+    basename = os.path.basename(file)
+    dirname = os.path.dirname(file)
+    suffix = pathlib.Path(file).suffix
+
+    if suffix is not '.safetensors':
+        # convert ckpt to safetensors
+        try:
+            with torch.no_grad():
+                    weights = torch.load(file)["state_dict"]
+                    if "state_dict" in weights:
+                        weights.pop("state_dict")
+                    fn = os.path.join(dirname, f"{basename}.safetensors")
+                    print(f'Saving {fn}...')
+                    save_file(weights, fn)
+        except Exception as e:
+            print(f'ERROR converting {file}: {e}')
+            print(traceback.format_exc())
+    # point converted file to args
+    args.pretrained_model_name_or_path = fn
+
 
 
 if basename:
@@ -456,7 +485,7 @@ if basename:
         '--checkpoint_path={}'.format(args.pretrained_model_name_or_path),
         '--dump_path={}'.format(basename),
     ]
-    if file_extension == 'safetensors':
+    if suffix == '.safetensors':
         sd_to_diff_parser_input_args.append('--from_safetensors')
     if args.resolution:
         sd_to_diff_parser_input_args.append('--image_size={}'.format(args.resolution))
@@ -538,6 +567,9 @@ main(args)
 
 checkpoint_dirs = glob(os.path.join(args.output_dir, 'checkpoint-*'))
 for dir in checkpoint_dirs:
-    os.system("cp -rp {}/vae {}".format(args.output_dir, dir))
-    os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path={} --checkpoint_path={} --use_safetensors".format(dir, os.path.join(MODELS_DIR, args.output_dir + '.safetensors')))
+    if os.path.isdir(os.path.join(args.output_dir, "vae")) and not os.path.isdir(os.path.join(args.output_dir, dir, "vae")):
+        os.system("cp -rp {}/vae {}".format(args.output_dir, dir))
+    if os.path.isdir(os.path.join(args.output_dir, "unet")) and not os.path.isdir(os.path.join(args.output_dir, dir, "unet")):
+        os.system("cp -rp {}/unet {}".format(args.output_dir, dir))
+    os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path={} --checkpoint_path={} --use_safetensors".format(dir, os.path.join(args.models_dir, args.output_dir + '.safetensors')))
 

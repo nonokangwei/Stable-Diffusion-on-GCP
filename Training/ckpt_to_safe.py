@@ -26,8 +26,8 @@ for f in files:
         try:
             with torch.no_grad():
                 weights = torch.load(f)["state_dict"]
-                if 'state_dict' in weights:
-                    weights.pop("state_dict')
+                if "state_dict" in weights:
+                    weights.pop("state_dict")
                 fn = f"{f.replace('.ckpt', '')}.safetensors"
                 print(f'Saving {fn}...')
                 save_file(weights, fn)

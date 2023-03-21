@@ -4,6 +4,7 @@ import argparse
 import os
 import pathlib
 import traceback
+import warnings
 os.getcwd()
 
 import torch
@@ -454,43 +455,49 @@ sd_to_diff_parser.add_argument(
 
 
 args = parse_args()
+from pprint import pprint
+pprint(args)
 
-basename = None
+filename = None
+# basename = None
+dirname = None
+suffix = None
+file_safetensors = None
 if os.path.isfile(args.pretrained_model_name_or_path):
     file = args.pretrained_model_name_or_path
-    basename = os.path.basename(file)
+    filename = os.path.splitext(os.path.basename(file))[0]
+    # basename = os.path.basename(file)
     dirname = os.path.dirname(file)
     suffix = pathlib.Path(file).suffix
 
-    if suffix is not '.safetensors':
+    if suffix != '.safetensors':
         # convert ckpt to safetensors
         try:
             with torch.no_grad():
                     weights = torch.load(file)["state_dict"]
                     if "state_dict" in weights:
                         weights.pop("state_dict")
-                    fn = os.path.join(dirname, f"{basename}.safetensors")
-                    print(f'Saving {fn}...')
-                    save_file(weights, fn)
+                    file_safetensors = os.path.join(dirname, f"{filename}.safetensors")
+                    print(f'Saving {file_safetensors}...')
+                    save_file(weights, file_safetensors)
         except Exception as e:
             print(f'ERROR converting {file}: {e}')
             print(traceback.format_exc())
-    # point converted file to args
-    args.pretrained_model_name_or_path = fn
+        # point converted file to args
+        args.pretrained_model_name_or_path = file_safetensors
 
 
-
-if basename:
+if filename:
     sd_to_diff_parser_input_args = [
         '--checkpoint_path={}'.format(args.pretrained_model_name_or_path),
-        '--dump_path={}'.format(basename),
+        '--dump_path={}'.format(filename),
     ]
     if suffix == '.safetensors':
         sd_to_diff_parser_input_args.append('--from_safetensors')
     if args.resolution:
         sd_to_diff_parser_input_args.append('--image_size={}'.format(args.resolution))
-    if os.path.isfile(basename + '.yaml'):
-        sd_to_diff_parser_input_args.append('--original_config_file={}'.format(basename + '.yaml'))
+    if os.path.isfile(filename + '.yaml'):
+        sd_to_diff_parser_input_args.append('--original_config_file={}'.format(os.path.join(dirname, filename + '.yaml')))
         
     sd_to_diff_args = sd_to_diff_parser.parse_args(sd_to_diff_parser_input_args)
     
@@ -511,6 +518,7 @@ if basename:
         clip_stats_path=sd_to_diff_args.clip_stats_path,
         controlnet=sd_to_diff_args.controlnet,
     )
+
 
     if sd_to_diff_args.controlnet:
         # only save the controlnet model
@@ -565,11 +573,24 @@ print("DEBUG: ", args.gradient_checkpointing, args.train_text_encoder, args.trai
 from train_dreambooth import main
 main(args)
 
+if not os.path.exists(args.models_dir):
+    os.makedirs(args.models_dir)
+if not os.path.exists(args.models_dir):
+    os.makedirs(args.models_dir)
+
+
+# print(os.path.join(args.output_dir, 'checkpoint-*'))
 checkpoint_dirs = glob(os.path.join(args.output_dir, 'checkpoint-*'))
+# print(checkpoint_dirs)
 for dir in checkpoint_dirs:
-    if os.path.isdir(os.path.join(args.output_dir, "vae")) and not os.path.isdir(os.path.join(args.output_dir, dir, "vae")):
+    n_steps = os.path.basename(dir).split('-')[-1]
+    if os.path.isdir(os.path.join(args.output_dir, "vae")) and not os.path.isdir(os.path.join(dir, "vae")):
+        print("cp -rp {}/vae {}".format(args.output_dir, dir))
         os.system("cp -rp {}/vae {}".format(args.output_dir, dir))
-    if os.path.isdir(os.path.join(args.output_dir, "unet")) and not os.path.isdir(os.path.join(args.output_dir, dir, "unet")):
+    if os.path.isdir(os.path.join(args.output_dir, "unet")) and not os.path.isdir(os.path.join(dir, "unet")):
+        print("cp -rp {}/unet {}".format(args.output_dir, dir))
         os.system("cp -rp {}/unet {}".format(args.output_dir, dir))
-    os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path={} --checkpoint_path={} --use_safetensors".format(dir, os.path.join(args.models_dir, args.output_dir + '.safetensors')))
+        
+    print("python convert_diffusers_to_original_stable_diffusion.py --model_path={} --checkpoint_path={} --use_safetensors".format(dir, os.path.join(args.models_dir, args.output_dir + f'-{n_steps}.safetensors')))
+    os.system("python convert_diffusers_to_original_stable_diffusion.py --model_path={} --checkpoint_path={} --use_safetensors".format(dir, os.path.join(args.models_dir, args.output_dir + f'-{n_steps}.safetensors')))
 

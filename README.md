@@ -81,12 +81,14 @@ docker push
 
 ### Create Filestore
 Create Filestore storage, mount and prepare files and folders for models/outputs/training data \
-You should prepare a VM to mount the filestore instance.
+You should prepare a VM to mount the filestore instance. \
+**NOTE: models/Stable-Diffusion/ folder is not empty, mounting the filestore share directly will lose some folders and error out. \
+One easy way for this is to mount the filestore share, copy the folders from repo's models/Stable-Diffusion/ before being used by pods.**
 
 ```
 FILESTORE_NAME=<replace with filestore instance name>
 FILESTORE_ZONE=<replace with filestore instance zone>
-FILESHARE_NAME=<replace with fileshare name>
+FILESHARE_NAME=<replace with filestore share name>
 
 
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}

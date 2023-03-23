@@ -484,11 +484,11 @@ if __name__ == '__main__':
 
     if str(args.pretrained_model_name_or_path).startswith('gs://'):
         subprocess.run("gcloud storage cp -r {} .".format(args.pretrained_model_name_or_path), shell=True)
-        args.pretrained_model_name_or_path = os.path.basename(args.pretrained_model_name_or_path)
+        args.pretrained_model_name_or_path = os.path.basename(str(args.pretrained_model_name_or_path).strip('/'))
 
     if str(args.instance_data_dir).startswith('gs://'):
         subprocess.run("gcloud storage cp -r {} .".format(args.instance_data_dir), shell=True)
-        args.instance_data_dir = os.path.basename(args.instance_data_dir)
+        args.instance_data_dir = os.path.basename(str(args.instance_data_dir).strip('/'))
 
     if os.path.isfile(args.pretrained_model_name_or_path):
         file = args.pretrained_model_name_or_path
@@ -587,7 +587,7 @@ if __name__ == '__main__':
 
     if str(args.output_dir).startswith('gs://'):
         gcs_output_dir = args.output_dir
-        args.output_dir = os.path.basename(args.output_dir)
+        args.output_dir = os.path.basename(str(args.output_dir).strip('/'))
 
     print("DEBUG: arguments before start training...")
     pprint(vars(args))

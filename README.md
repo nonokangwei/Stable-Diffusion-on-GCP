@@ -20,8 +20,9 @@ gcloud services enable compute.googleapis.com artifactregistry.googleapis.com co
 Do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus). \
 In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing. \
 We will also enable [GPU time sharing](https://cloud.google.com/kubernetes-engine/docs/how-to/timesharing-gpus#enable-cluster) to optimize GPU utilization for inference workload. \
-We used a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod.
+We used a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod. \
 
+**NOTE: If you are creating a private cluster, create [Cloud NAT gateway](https://cloud.google.com/nat/docs/gke-example#create-nat) to ensure you node pool has access to the internet.**
 ```
 PROJECT_ID=<replace this with your project id>
 GKE_CLUSTER_NAME=<replace this with your GKE cluster name>

@@ -340,17 +340,18 @@ def parse_args_main(input_args=None):
     if env_local_rank != -1 and env_local_rank != args.local_rank:
         args.local_rank = env_local_rank
 
-    if args.with_prior_preservation:
-        if args.class_data_dir is None:
-            raise ValueError("You must specify a data directory for class images.")
-        if args.class_prompt is None:
-            raise ValueError("You must specify prompt for class images.")
-    else:
-        # logger is not available yet
-        if args.class_data_dir is not None:
-            warnings.warn("You need not use --class_data_dir without --with_prior_preservation.")
-        if args.class_prompt is not None:
-            warnings.warn("You need not use --class_prompt without --with_prior_preservation.")
+    if not args.auto_guess:
+        if args.with_prior_preservation:
+            if args.class_data_dir is None:
+                raise ValueError("You must specify a data directory for class images.")
+            if args.class_prompt is None:
+                raise ValueError("You must specify prompt for class images.")
+        else:
+            # logger is not available yet
+            if args.class_data_dir is not None:
+                warnings.warn("You need not use --class_data_dir without --with_prior_preservation.")
+            if args.class_prompt is not None:
+                warnings.warn("You need not use --class_prompt without --with_prior_preservation.")
 
     return args
 
@@ -554,20 +555,8 @@ if __name__ == '__main__':
 
         args.pretrained_model_name_or_path = sd_to_diff_args.dump_path
 
-    import nvidia_smi
-
-    nvidia_smi.nvmlInit()
-
-    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(0)
-    # card id 0 hardcoded here, there is also a call to get all available card ids, so we could iterate
-
-    gpu_info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
-
-    print("Total memory:", gpu_info.total/1024/1024/1024)
-    print("Free memory:", gpu_info.free/1024/1024/1024)
-    print("Used memory:", gpu_info.used/1024/1024/1024)
-
-    nvidia_smi.nvmlShutdown()
+    print("Total memory:", torch.cuda.mem_get_info()[1]/1024/1024/1024)
+    print("Free memory:", torch.cuda.mem_get_info()[0]/1024/1024/1024)
 
     if args.auto_guess:
         args.with_prior_preservation = True
@@ -585,7 +574,7 @@ if __name__ == '__main__':
         args.use_8bit_adam = True
         args.train_batch_size = 1
         args.enable_xformers_memory_efficient_attention = True
-        if gpu_info.free >= 24*1024*1024*1024:
+        if torch.cuda.mem_get_info()[0] >= 23*1024*1024*1024:
             args.gradient_checkpointing = False
             args.train_batch_size = 2
             # args.train_text_encoder = True
@@ -599,6 +588,9 @@ if __name__ == '__main__':
     if str(args.output_dir).startswith('gs://'):
         gcs_output_dir = args.output_dir
         args.output_dir = os.path.basename(args.output_dir)
+
+    print("DEBUG: arguments before start training...")
+    pprint(vars(args))
 
     from train_dreambooth import main
     main(args)

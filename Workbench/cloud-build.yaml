@@ -1,0 +1,8 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/project_id/artifact_registry_id/sd-training:nbexecutor-v1', '.' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/project_id/artifact_registry_id/sd-training:nbexecutor-v1']
+options:
+  machineType: 'N1_HIGHCPU_8'
+  diskSizeGb: '200'

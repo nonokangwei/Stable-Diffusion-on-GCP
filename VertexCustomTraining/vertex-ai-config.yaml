@@ -1,0 +1,8 @@
+workerPoolSpecs:
+  machineSpec:
+    machineType: n1-standard-8
+    acceleratorType: NVIDIA_TESLA_T4
+    acceleratorCount: 1
+  replicaCount: 1
+  containerSpec:
+    imageUri: us-central1-docker.pkg.dev/project_id/artifact_registry_id/sd-training:db-lora-v1

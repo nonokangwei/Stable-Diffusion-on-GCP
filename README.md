@@ -1,119 +1,177 @@
-# Stable-Diffusion on Google Cloud Quick Start Guide
+# **Stable Diffusion Fine-tuning on Google Cloud Quick Start Guide**
 
-This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. User can just follow the step have your stable diffusion model running.
+This guide gives simple steps for stable diffusion users to fine-tune stable diffusion using dreambooth with LoRA on Google Cloud Vertex AI. Two options are provided, one is Vertex AI custom training service, the other is Workbench executor. User can just follow the step have your stable diffusion model training.
 
 * [Introduction](#Introduction)
-* [How-To](#how-to)
+* [Vertex AI custom training](#Vertex_AI_Custom_Training)
+* [Vertex AI Workbench executor](#Vertex_AI_Workbench_Executor)
 
 ## Introduction
-   This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image.
+   [Vertex AI](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform) is a machine learning (ML) platform that lets you train and deploy ML models and AI applications. Vertex AI combines data engineering, data science, and ML engineering workflows, enabling your teams to collaborate using a common toolset.
 
-## How To
-you can use the cloud shell as the run time to do below steps.
+   [Diffusers](https://github.com/huggingface/diffusers) is the go-to library for state-of-the-art pretrained diffusion models for generating images, audio, and even 3D structures of molecules. It provides diffusion model's training, inference on GPU and TPU.
+
+   In the project, we just use Diffusers library, demo **Dreambooth with LoRA** training on GPU on Vertex AI, while Dreambooth, text2image are also similar. 
+
+   This project also uses Cloud Build to quickly build up a docker image for training.
+
+   Customer can just use [Huggingface pre-trained Stable Diffusion model](https://huggingface.co/runwayml/stable-diffusion-v1-5) as base model or prepare the stable diffusion model by yourself.
+   
+## Vertex AI Custom Training
+
+Vertex AI provides a [managed training service](https://cloud.google.com/vertex-ai/docs/training/overview) that enables you to operationalize large scale model training. You can use Vertex AI to run distributed training applications based on any machine learning (ML) framework (Tensorflow, Pytorch, etc.) on Google Cloud infrastructure. 
+
+You can use the cloud shell as the run time to do below steps.
+
 ### Before you begin
-1. make sure you have an available GCP project for your deployment
-2. Enable the required service API using [cloud shell](https://cloud.google.com/shell/docs/run-gcloud-commands)
-```
-gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com
-```
-### Create GKE Cluster
-do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus).
-In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing.
+1. Make sure you have an available GCP project for your deployment
+
+2. Enable the required service API using [Cloud Shell](https://cloud.google.com/shell/docs/run-gcloud-commands)
 
 ```
-PROJECT_ID=<replace this with your project id>
-GKE_CLUSTER_NAME=<replace this with your GKE cluster name>
-REGION=<replace this with your region>
-VPC_NETWORK=<replace this with your vpc network name>
-VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
-
-gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
-    --machine-type "custom-2-24576-ext" --accelerator "type=nvidia-tesla-t4,count=1" \
-    --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
-    --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
-    --num-nodes "1" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-private-nodes \
-    --master-ipv4-cidr "172.16.1.0/28" --enable-ip-alias --network "projects/${PROJECT_ID}/global/networks/${VPC_NETWORK}" \
-    --subnetwork "projects/${PROJECT_ID}/regions/${REGION}/subnetworks/${VPC_SUBNETWORK}" \
-    --no-enable-intra-node-visibility --default-max-pods-per-node "110" --no-enable-master-authorized-networks \
-    --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver,GcpFilestoreCsiDriver \
-    --enable-autoupgrade --no-enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 \
-    --enable-autoprovisioning --min-cpu 1 --max-cpu 64 --min-memory 1 --max-memory 256 \
-    --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform --no-enable-autoprovisioning-autorepair \
-    --enable-autoprovisioning-autoupgrade --autoprovisioning-max-surge-upgrade 1 --autoprovisioning-max-unavailable-upgrade 0 \
-    --enable-vertical-pod-autoscaling --enable-shielded-nodes \
-    --spot
+gcloud services enable artifactregistry.googleapis.com container.googleapis.com aiplatform.googleapis.com
 ```
 
-### Get credentials of GKE cluster
-```
-gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
-```
+2. Make sure the Vertex AI service account (that is **Compute Engine default service account**) has enough access to GCS
 
-### Install GPU Driver
-```
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
-```
+3. Get GPU quota in your GCP project
 
-### Create Cloud Artifacts as Docker Repo
+### Create an Cloud Artifact as docker repo
+
 ```
 BUILD_REGIST=<replace this with your preferred Artifacts repo name>
 
 gcloud artifacts repositories create ${BUILD_REGIST} --repository-format=docker \
---location=${REGION}
+--location=us-central1
 
-gcloud auth configure-docker ${REGION}-docker.pkg.dev
+gcloud auth configure-docker us-central1-docker.pkg.dev
 ```
+### Build Stable Diffusion image using Cloud Build
 
+1. Change to *VertexCustomTraining* folder 
 
-### Build Stable Diffusion Image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts
+2. Config project id and artifact repo id and image name in *cloud-build-config.yaml*
 
-```
-cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel
-docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
-docker push 
+3. Build the image using Cloud Build
 
 ```
-
-### Create Filestore
-Create Filestore storage, mount and prepare files and folders for models/outputs/training data
-You should prepare a VM to mount the filestore instance.
-
+gcloud builds submit --config cloud-build-config.yaml .
 ```
-FILESTORE_NAME=<replace with filestore instance name>
-FILESTORE_ZONE=<replace with filestore instance zone>
-FILESHARE_NAME=<replace with fileshare name>
+### Fine-tune stable diffusion model on Vertex AI customer training
 
-
-gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
-gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
+1. Upload training images to Cloud Storage, users can just use the dog images in this repo as an example.
 
 ```
-
-### Enable Node Pool Autoscale
-Set the Node pool with cluster autoscale(CA) capability, when the horizonal pod autocale feature scale up the pod replica size, it will trigger the node pool scale out to provide required GPU resource.
-```
-gcloud container clusters update ${GKE_CLUSTER_NAME} \
-    --enable-autoscaling \
-    --node-pool=default-pool \
-    --min-nodes=0 \
-    --max-nodes=5 \
-    --region=${REGION}
+gsutil cp -r dog_images gs://bucket_name/dog_images
 ```
 
-### Enable Horizonal Pod Autoscale(HPA)
-Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
-```
-kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole cluster-admin --user "$(gcloud config get-value account)"
-```
+2. [Optional] Upload your customized base model to Cloud Storage
+
+3. Config the prepared image name in *vertex-ai-config.yaml*, in the sample config, we just use a n1-stanard-8 machine with one T4 GPU. If you want to enable multiple A100 training, configure it like below. This project can automatically detects the GPU numbers and configure multi-GPU training.
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml
+machineSpec:
+    machineType: n1-standard-8
+    acceleratorType: NVIDIA_TESLA_A100
+    acceleratorCount: 2
 ```
 
-Deploy horizonal pod autoscale policy on the stable-diffusion deployment
+4. Submit custom training job with arguments input. The parameter **args** can be configured like below:
+    * The model name can be Huggingface repo id, or Cloud Storage path, like */gcs/bucket_name/model_folder*
+    * The input_storage and output_storage should be Cloud Storage path like */gcs/bucket_name/input_or_output_folder*
+    * Prompt can be like "a photo of somebody or some special things
 ```
-kubectl apply -f ./Stable-Diffusion-UI-Novel/autoscale/hap.yaml
+gcloud ai custom-jobs create \
+  --region=us-central1 \
+  --display-name=${JOB_NAME} \
+  --config=vertex-ai-config.yaml \
+  --args="--model_name=runwayml/stable-diffusion-v1-5,--input_storage=/gcs/bucket_name/input_dog,--output_storage=/gcs/bucket_name/dog_lora_output,--prompt=a photo of sks dog"
+
+```
+5. The generated model will be saved in output_storage path, *a bin file* and *a safetensors file*. The bin file can be directly load in Diffusers library for inference. And safetensors file is for Automatic1111 WebUI.
+
+### Check the outputs in Cloud Storage
+After sumit training job to Vertex AI, you can monitor its status in Cloud UI. 
+
+![Vertex AI custom training UI](images/custom_training_status.png)
+
+When finished, you can get the fine-tuned model in Cloud Storage output folder. 
+    
+* The *pytorch_lora_weights.bin* file is model in original diffusers format, while *pytorch_lora_weights.safetensors* is converted from .bin file, userd for WebUI.
+* The training logs are also in the event folder.
+
+### File architecture
+
+```
+|-- train.py #model training file in Docker
+|-- Dockerfile
+|-- cloud-build-config.yaml #cloud config file used in CLI
+|-- vertex-ai-config.yaml  #Vertex AI custom training config file used in CLI
+|-- Stable_Diffusion_Lora_fine_tuning_on_Vertex_AI.ipynb #A sample notebook, showing all codes and commands
+```
+
+## Vertex AI Workbench Executor
+
+[Vertex AI Workbench managed notebooks instances](https://cloud.google.com/vertex-ai/docs/workbench/managed/introduction) are Google-managed environments with integrations and capabilities that help you set up and work in an end-to-end Jupyter notebook-based production environment.
+
+The executor lets you submit a notebook (ipynb) file from Workbech, to run on Vertex AI custom training. So it's convinient for codes and parameters fine-tuning, and computing cost saving.
+
+We just skip the first two steps as they the same with Vertex AI custom training.
+
+### Before you begin
+
+The same with custom training
+
+### Create an Cloud Artifact as docker repo
+
+The same with custom training
+
+### Create a Workbench
+
+
+### Build Stable Diffusion image using Cloud Build
+
+1. Change to *Workbench* folder 
+
+2. Config project id and artifact repo id and image name in *cloud-build-config.yaml*
+
+3. Build the image using Cloud Build
+
+```
+gcloud builds submit --config cloud-build-config.yaml .
+```
+### Fine-tune stable diffusion model on Vertex AI Workbench
+
+1. Upload training images to Cloud Storage
+
+2. [Optional] Upload your customized base model to Cloud Storage
+
+3. Modify code in workbench notebook, using *sd_training_nbexecutor.ipynb* as a sample.
+
+4. Start an executor job in Workbench
+
+Click **executor** buttor in Workbench notebook, and configure machine size and container name in the pop-out window.
+
+![Vertex AI Workbench executor](images/workbench_executor.png)
+
+After clicking Submit, it will start a custom training job, run the notebook in the selected container.
+
+### Check the outputs in Cloud Storage
+
+
+The job status can be monitored in Workbench executor tab.
+
+![Vertex AI Workbench executor status](images/workbench_status.png)
+
+When finished, you can get the fine-tuned model in Cloud Storage output folder. 
+    
+* The *pytorch_lora_weights.bin* file is model in original diffusers format, while *pytorch_lora_weights.safetensors* is converted from .bin file, userd for WebUI.
+* The training logs are also in the event folder.
+
+### File architecture
+
+```
+|-- Dockerfile
+|-- cloud-build-config.yaml #cloud config file used in CLI
+|-- sd_training_executor.ipynb #A sample notebook, showing all codes and commands
 ```

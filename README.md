@@ -17,19 +17,23 @@ you can use the cloud shell as the run time to do below steps.
 gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com
 ```
 ### Create GKE Cluster
-do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus).
-In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing.
+Do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus). \
+In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing. \
+We will also enable [GPU time sharing](https://cloud.google.com/kubernetes-engine/docs/how-to/timesharing-gpus#enable-cluster) to optimize GPU utilization for inference workload. \
+We used a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod. \
 
+**NOTE: If you are creating a private cluster, create [Cloud NAT gateway](https://cloud.google.com/nat/docs/gke-example#create-nat) to ensure you node pool has access to the internet.**
 ```
 PROJECT_ID=<replace this with your project id>
 GKE_CLUSTER_NAME=<replace this with your GKE cluster name>
 REGION=<replace this with your region>
 VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
+CLIENT_PER_GPU=<replace this with the number of clients to share 1 GPU, a proper value is 2 or 3>
 
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
     --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
-    --machine-type "custom-2-24576-ext" --accelerator "type=nvidia-tesla-t4,count=1" \
+    --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
     --num-nodes "1" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-private-nodes \
@@ -41,8 +45,7 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --enable-autoprovisioning --min-cpu 1 --max-cpu 64 --min-memory 1 --max-memory 256 \
     --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform --no-enable-autoprovisioning-autorepair \
     --enable-autoprovisioning-autoupgrade --autoprovisioning-max-surge-upgrade 1 --autoprovisioning-max-unavailable-upgrade 0 \
-    --enable-vertical-pod-autoscaling --enable-shielded-nodes \
-    --spot
+    --enable-vertical-pod-autoscaling --enable-shielded-nodes
 ```
 
 ### Get credentials of GKE cluster
@@ -67,23 +70,26 @@ gcloud auth configure-docker ${REGION}-docker.pkg.dev
 
 
 ### Build Stable Diffusion Image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts
+Build image with provided Dockerfile, push to repo in Cloud Artifacts \
+Please note I have prepared two individual Dockerfile for inference and training, for inference, we don't include dreambooth extension for training.
 
 ```
-cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel
-docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
+cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel/docker_inference
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:inference
 docker push 
 
 ```
 
 ### Create Filestore
-Create Filestore storage, mount and prepare files and folders for models/outputs/training data
-You should prepare a VM to mount the filestore instance.
+Create Filestore storage, mount and prepare files and folders for models/outputs/training data \
+You should prepare a VM to mount the filestore instance. \
+**NOTE: models/Stable-Diffusion/ folder is not empty, mounting the filestore share directly will lose some folders and error out. \
+One easy way for this is to mount the filestore share, copy the folders from repo's models/Stable-Diffusion/ before being used by pods.**
 
 ```
 FILESTORE_NAME=<replace with filestore instance name>
 FILESTORE_ZONE=<replace with filestore instance zone>
-FILESHARE_NAME=<replace with fileshare name>
+FILESHARE_NAME=<replace with filestore share name>
 
 
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
@@ -104,7 +110,9 @@ gcloud container clusters update ${GKE_CLUSTER_NAME} \
 
 ### Enable Horizonal Pod Autoscale(HPA)
 Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
+
 ```
+# optional, just to ensure you have necessary privilege for the cluster
 kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole cluster-admin --user "$(gcloud config get-value account)"
 ```
@@ -115,5 +123,46 @@ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stack
 
 Deploy horizonal pod autoscale policy on the stable-diffusion deployment
 ```
-kubectl apply -f ./Stable-Diffusion-UI-Novel/autoscale/hap.yaml
+kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hap.yaml
+```
+
+## Other notes
+### About multi users/session
+AUTOMATIC1111's Stable Diffusion WebUI does not support multi users/session at this moment, you can refer to,
+https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/7970
+
+So the corrent solution is, one deployment/service for one models.
+
+### About file structure
+Instead of building image for each model, we are using one image with share storage from Filestore and properly orchestration for our files and folders.
+Please refer to the deployment_*.yaml for reference
+
+You folders structure could probably like this in your Filestore share
+```
+/models/Stable-diffusion # <--- This is where SD webui looking for models, support models inside a folder
+|-- nai
+|   |-- nai.ckpt
+|   |-- nai.vae.pt
+|   `-- nai.yaml
+|-- sd15
+|   `-- v1-5-pruned-emaonly.safetensors
+
+/inputs/ # <--- for training images, only use it when running train job from UI(sd_dreammbooth_extension)
+|-- alvan-nee-cropped
+|   |-- alvan-nee-9M0tSjb-cpA-unsplash_cropped.jpeg
+|   |-- alvan-nee-Id1DBHv4fbg-unsplash_cropped.jpeg
+|   |-- alvan-nee-bQaAJCbNq3g-unsplash_cropped.jpeg
+|   |-- alvan-nee-brFsZ7qszSY-unsplash_cropped.jpeg
+|   `-- alvan-nee-eoqnr8ikwFE-unsplash_cropped.jpeg
+
+/outputs/ # <--- for generated images
+|-- img2img-grids
+|   `-- 2023-03-14
+|       |-- grid-0000.png
+|       `-- grid-0001.png
+|-- img2img-images
+|   `-- 2023-03-14
+|       |-- 00000-425382929.png
+|       |-- 00001-631481262.png
+|       |-- 00002-1301840995.png
 ```

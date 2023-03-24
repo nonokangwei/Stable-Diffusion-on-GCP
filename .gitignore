@@ -2,3 +2,13 @@ build-.json
 script.sh
 Stable-Diffusion-UI-Novel/model.ckpt
 Stable-Diffusion-UI-Novel/sd_dreambooth_extension
+Training/**
+!Training/*.py
+!Training/*.sh
+!Training/*.ipynb
+!Training/*.md
+Preprocess/**
+!Preprocess/*.py
+!Preprocess/*.sh
+!Preprocess/*.ipynb
+!Preprocess/*.md

@@ -1,0 +1,27 @@
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+
+RUN apt update
+RUN apt install -y wget git python3 python3-venv python3-pip
+
+RUN pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+
+WORKDIR /root
+
+RUN git clone https://github.com/huggingface/peft.git
+RUN pip install /root/peft 
+RUN git clone https://huggingface.co/spaces/smangrul/peft-lora-sd-dreambooth
+RUN pip install -r /root/peft-lora-sd-dreambooth/requirements.txt
+
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/lib64
+RUN ln -s /usr/local/cuda/lib64/libcudart.so.11.0 /usr/local/cuda/lib64/libcudart.so
+RUN pip install -U bitsandbytes --prefer-binary
+
+# Installs additional packages as you need.
+RUN pip install -U google-cloud-aiplatform
+RUN pip install -U google-cloud-storage
+
+# Copies the trainer code to the docker image.
+COPY train.py /root/train.py
+
+# Sets up the entry point to invoke the trainer.
+ENTRYPOINT ["python3", "-m", "train"]

@@ -483,12 +483,14 @@ if __name__ == '__main__':
     file_safetensors = None
 
     if str(args.pretrained_model_name_or_path).startswith('gs://'):
-        subprocess.run("gcloud storage cp -r {} .".format(args.pretrained_model_name_or_path), shell=True)
-        args.pretrained_model_name_or_path = os.path.basename(str(args.pretrained_model_name_or_path).strip('/'))
+        # subprocess.run("gcloud storage cp -r {} .".format(args.pretrained_model_name_or_path), shell=True)
+        # args.pretrained_model_name_or_path = os.path.basename(str(args.pretrained_model_name_or_path).strip('/'))
+        args.pretrained_model_name_or_path = str(args.pretrained_model_name_or_path).replace('gs://', '/gcs/')
 
     if str(args.instance_data_dir).startswith('gs://'):
-        subprocess.run("gcloud storage cp -r {} .".format(args.instance_data_dir), shell=True)
-        args.instance_data_dir = os.path.basename(str(args.instance_data_dir).strip('/'))
+        # subprocess.run("gcloud storage cp -r {} .".format(args.instance_data_dir), shell=True)
+        # args.instance_data_dir = os.path.basename(str(args.instance_data_dir).strip('/'))
+        args.instance_data_dir = str(args.instance_data_dir).replace('gs://', '/gcs/')
 
     if os.path.isfile(args.pretrained_model_name_or_path):
         file = args.pretrained_model_name_or_path
@@ -583,11 +585,12 @@ if __name__ == '__main__':
             args.gradient_checkpointing = True
             # args.train_text_encoder = False
 
-    gcs_output_dir = None
+    # gcs_output_dir = None
 
     if str(args.output_dir).startswith('gs://'):
-        gcs_output_dir = args.output_dir
-        args.output_dir = os.path.basename(str(args.output_dir).strip('/'))
+        # gcs_output_dir = args.output_dir
+        # args.output_dir = os.path.basename(str(args.output_dir).strip('/'))
+        args.output_dir = str(args.output_dir).replace('gs://', '/gcs/')
 
     print("DEBUG: arguments before start training...")
     pprint(vars(args))
@@ -619,11 +622,11 @@ if __name__ == '__main__':
             dir, os.path.join(args.output_dir, f'{model_name}-{n_steps}.safetensors')))
         subprocess.run("python3 convert_diffusers_to_original_stable_diffusion.py --model_path={} --checkpoint_path={} --use_safetensors".format(
             dir, os.path.join(args.output_dir, f'{model_name}-{n_steps}.safetensors')), shell=True)
-        if gcs_output_dir:
-            print("gcloud storage cp -r {} {}".format(
-                os.path.join(args.output_dir, f'{model_name}-{n_steps}.safetensors'),
-                os.path.join(gcs_output_dir, f'{model_name}-{n_steps}.safetensors')))
-            subprocess.run("gcloud storage cp -r {} {}".format(
-                os.path.join(args.output_dir, f'{model_name}-{n_steps}.safetensors'),
-                os.path.join(gcs_output_dir, f'{model_name}-{n_steps}.safetensors')),
-                        shell=True)
+        # if gcs_output_dir:
+        #     print("gcloud storage cp -r {} {}".format(
+        #         os.path.join(args.output_dir, f'{model_name}-{n_steps}.safetensors'),
+        #         os.path.join(gcs_output_dir, f'{model_name}-{n_steps}.safetensors')))
+        #     subprocess.run("gcloud storage cp -r {} {}".format(
+        #         os.path.join(args.output_dir, f'{model_name}-{n_steps}.safetensors'),
+        #         os.path.join(gcs_output_dir, f'{model_name}-{n_steps}.safetensors')),
+        #                 shell=True)

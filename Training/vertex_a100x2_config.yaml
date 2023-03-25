@@ -1,0 +1,8 @@
+workerPoolSpecs:
+  machineSpec:
+    machineType: a2-highgpu-2g
+    acceleratorType: NVIDIA_TESLA_A100
+    acceleratorCount: 2
+  replicaCount: 1
+  containerSpec:
+    imageUri: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:vertex

@@ -15,9 +15,9 @@
 apiVersion: "agones.dev/v1"
 kind: Fleet
 metadata:
-  name: simple-sd-server
+  name: sd-agones-fleet
 spec:
-  replicas: 2
+  replicas: 1
   template:
     spec:
       container: simple-game-server
@@ -45,7 +45,4 @@ spec:
             image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/sd-webui:0.1
             resources:
               limits:
-                requests:
-                  memory: "64Mi"
-                  cpu: "20m"
                 nvidia.com/gpu: 1

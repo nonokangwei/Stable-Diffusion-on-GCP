@@ -42,7 +42,7 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver,GcpFilestoreCsiDriver \
     --autoscaling-profile optimize-utilization
 
-gcloud beta container --project "project-kangwe-poc" node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110"
+gcloud beta container --project "project-kangwe-poc" node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
 ```
 
 ### Get credentials of GKE cluster
@@ -91,29 +91,20 @@ gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HD
 
 ```
 
-### Enable Node Pool Autoscale
-Set the Node pool with cluster autoscale(CA) capability, when the horizonal pod autocale feature scale up the pod replica size, it will trigger the node pool scale out to provide required GPU resource.
+### Install Agones
+Install the Agones operator on default-pool, the default pool is long-run node pool that host the Agones Operator.
+Note: for quick start, you can using the cloud shell which has helm installed already.
 ```
-gcloud container clusters update ${GKE_CLUSTER_NAME} \
-    --enable-autoscaling \
-    --node-pool=default-pool \
-    --min-nodes=0 \
-    --max-nodes=5 \
-    --region=${REGION}
+helm repo add agones https://agones.dev/chart/stable
+helm repo update
+helm install sd-agones-release --namespace agones-system -f ./agones/values.yaml agones/agones
 ```
 
-### Enable Horizonal Pod Autoscale(HPA)
-Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
-```
-kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole cluster-admin --user "$(gcloud config get-value account)"
-```
+### Build nginx proxy image
+Build image with provided Dockerfile, push to repo in Cloud Artifacts
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml
-```
-
-Deploy horizonal pod autoscale policy on the stable-diffusion deployment
-```
-kubectl apply -f ./Stable-Diffusion-UI-Novel/autoscale/hap.yaml
+cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 ```

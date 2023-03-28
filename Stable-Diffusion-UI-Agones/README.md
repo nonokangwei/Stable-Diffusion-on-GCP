@@ -9,7 +9,7 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
    This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image. To give mutli-user isolated stable-diffussion runtime, using the [Agones](https://agones.dev/site/) as the stable-diffusion fleet management operator, Agones manage the stable diffussion runtime's lifecycle and control the autoscaling based on user demond.
 
 ## Architecture
-
+![sd-agones-arch](images/sd-agones-arch.png)
 
 ## How To
 you can use the cloud shell as the run time to do below steps.
@@ -17,7 +17,7 @@ you can use the cloud shell as the run time to do below steps.
 1. make sure you have an available GCP project for your deployment
 2. Enable the required service API using [cloud shell](https://cloud.google.com/shell/docs/run-gcloud-commands)
 ```
-gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com vpcaccess.googleapis.com redis.googleapis.com
+gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com vpcaccess.googleapis.com redis.googleapis.com cloudscheduler.googleapis.com
 ```
 ### Create GKE Cluster
 do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus).
@@ -42,7 +42,7 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver,GcpFilestoreCsiDriver \
     --autoscaling-profile optimize-utilization
 
-gcloud beta container --project "project-kangwe-poc" node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
+gcloud beta container --project ${PROJECT_ID} node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
 ```
 
 ### Get credentials of GKE cluster
@@ -100,11 +100,55 @@ helm repo update
 helm install sd-agones-release --namespace agones-system -f ./agones/values.yaml agones/agones
 ```
 
+### Create Redis Cache
+Create a redis cache instance to host the access information.
+```
+gcloud redis instances create --project=${PROJECT_ID}  sd-agones-cache --tier=standard --size=1 --region=${REGION} --redis-version=redis_6_x --network=projects/${PROJECT_ID}/global/networks/${VPC_NETWORK} --connect-mode=DIRECT_PEERING
+```
+
+Record the redis instance connection ip address.
+```
+gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json | jq .host
+```
+
 ### Build nginx proxy image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts
+Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua line 15 with the ip address record in previous step.
 
 ```
 cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 ```
+
+### Deploy stable-diffusion agones deployment
+Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
+```
+kubectl apply -f ./gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
+kubectl apply -f ./gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/agones/fleet.yaml
+kubectl apply -f ./gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
+```
+
+### Prepare Cloud Function Serverless VPC Access
+Create serverless VPC access connector, which is used by cloud function to connect the private connection endpoint.
+```
+gcloud compute networks vpc-access connectors create sd-agones-connector --network ${VPC_NETWORK} --region ${REGION} --range 192.168.240.16/28
+```
+
+### Deploy Cloud Function Cruiser Program
+This Cloud Function work as Cruiser to monitor the idle user, by default when the user is idle for 15mins, the stable-diffusion runtime will be collected back. Please replace ${REDIS_HOST} with the redis instance ip address that record in previous step. To custom the idle timeout default setting, please overwrite setting by setting the variable TIME_INTERVAL.
+```
+cd ./gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/cloud-function
+gcloud functions deploy redis_http --runtime python310 --trigger-http --allow-unauthenticated --region=${REGION} --vpc-connector=sd-agones-connector --egress-settings=private-ranges-only --set-env-vars=REDIS_HOST=${REDIS_HOST}
+```
+Record the Function trigger url.
+```
+gcloud functions describe redis_http --region us-central1 --format=json | jq .httpsTrigger.url
+```
+Create the cruiser scheduler. Please change ${FUNCTION_URL} with url in previous step.
+```
+gcloud scheduler jobs create http sd-agones-cruiser \
+    --location=${REGION} \
+    --schedule="*/5 * * * *" \
+    --uri=${FUNCTION_URL}
+```
+

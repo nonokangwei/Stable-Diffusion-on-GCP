@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: stable-diffusion-nginx
-        image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/sd-nginx:0.1
+        image: us-central1-docker.pkg.dev/<PROJECT_ID>/<BUILD_REGIST>/sd-nginx:0.1
         ports:
           - containerPort: 8080
       nodeSelector:

@@ -42,7 +42,7 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/sd-webui:0.1
+            image: us-central1-docker.pkg.dev/<PROJECT_ID>/<BUILD_REGIST>/sd-webui:0.1
             resources:
               limits:
                 nvidia.com/gpu: 1

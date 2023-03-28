@@ -1,5 +1,7 @@
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
+WORKDIR /root
+
 RUN apt update -y && \
     apt install -y wget git python3 python3-venv python3-pip curl \
     apt-transport-https ca-certificates gnupg libpng-dev libjpeg-dev && \
@@ -19,7 +21,7 @@ RUN git clone https://github.com/huggingface/diffusers.git \
   && pip install /root/diffusers \
   && pip install -U -r /root/diffusers/examples/dreambooth/requirements.txt --prefer-binary \
   && pip install -U -r /root/diffusers/examples/text_to_image/requirements.txt --prefer-binary \
-  && pip install -U xformers --prefer-binary
+  && pip install -U xformers safetensors omegaconf --prefer-binary
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/lib64
 RUN ln -s /usr/local/cuda/lib64/libcudart.so.11.0 /usr/local/cuda/lib64/libcudart.so

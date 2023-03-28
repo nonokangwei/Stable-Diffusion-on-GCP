@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: vol1
+  name: vol2
 spec:
   accessModes:
   - ReadWriteMany

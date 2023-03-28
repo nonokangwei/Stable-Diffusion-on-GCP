@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stable-diffusion-sd15-deployment
+  name: stable-diffusion-igg-deployment
   labels:
-    app: stable-diffusion-sd15
+    app: stable-diffusion-igg
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: stable-diffusion-sd15
+      app: stable-diffusion-igg
   template:
     metadata:
       labels:
-        app: stable-diffusion-sd15
+        app: stable-diffusion-igg
     spec:
       nodeSelector:
         cloud.google.com/gke-gpu-sharing-strategy: time-sharing
@@ -23,7 +23,7 @@ spec:
             claimName: vol2
       containers:
       - name: stable-diffusion-webui
-        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:inference
+        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-igg:0.1
         resources:
           limits:
             cpu: 1800m
@@ -32,9 +32,12 @@ spec:
         ports:
           - containerPort: 7860
         volumeMounts:
-          - mountPath: "/stable-diffusion-webui/models/Stable-diffusion"
+          - mountPath: "/stable-diffusion-webui/models"
             name: stable-diffusion-storage
-            subPath: models/Stable-diffusion/sd15
+            subPath: models
           - mountPath: "/stable-diffusion-webui/outputs"
             name: stable-diffusion-storage
             subPath: outputs
+          - mountPath: "/inputs"
+            name: stable-diffusion-storage
+            subPath: inputs

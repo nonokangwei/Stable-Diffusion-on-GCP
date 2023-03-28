@@ -41,3 +41,6 @@ spec:
           - mountPath: "/stable-diffusion-webui/outputs"
             name: stable-diffusion-storage
             subPath: outputs
+          - mountPath: "/stable-diffusion-webui/models/ControlNet"
+            name: stable-diffusion-storage
+            subPath: models/ControlNet

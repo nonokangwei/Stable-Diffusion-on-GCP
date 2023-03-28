@@ -8,6 +8,16 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
 ## Introduction
    This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image.
 
+![Architecture](./assets/sd_gke_01.drawio.png)
+
+* Architecture GKE + GPU + spot + Vertex AI custom training
+* No conflicts for multi users, one deployment per model, use different mount point to distinguish models
+* Scaling with HPA with GPU metrics, support GPU time sharing
+* Inference and training on WebUI
+* Dreambooth Training on Vertex AI
+* Optimized for vram saving, Inference+Training can be done in a T4 GPU
+* No intrusive change against 1111 webui, easy to upgrade or install extensions with Dockerfile
+
 ## How To
 you can use the cloud shell as the run time to do below steps.
 ### Before you begin

@@ -152,3 +152,28 @@ gcloud scheduler jobs create http sd-agones-cruiser \
     --uri=${FUNCTION_URL}
 ```
 
+### Deploy IAP(identity awared proxy)
+To allocate isolated stable-diffusion runtime and provide user access auth capability, using the Google Cloud IAP service as an access gateway to provide the identity check and prograge the idenity to the stable-diffusion backend.
+
+Config the OAuth consent screen and OAuth credentials, check out the [guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#oauth-configure).
+
+Create an static external ip address, record the ip address.
+```
+gcloud compute addresses create sd-agones --global
+gcloud compute addresses describe sd-agones --global --format=json | jq .address
+```
+
+Config BackendConfig, replace the client_id and client_secret with the OAuth client create before.
+```
+kubectl create secret generic iap-secret --from-literal=client_id=client_id_key \
+    --from-literal=client_secret=client_secret_key
+```
+Change the DOMAIN_NAME1 in managed-cert.yaml with the environment domain, then deploy the depend resources.
+```
+kubectl apply -f ./ingress-iap/managed-cert.yaml
+kubectl apply -f ./ingress-iap/backendconfig.yaml
+kubectl apply -f ./ingress-iap/service.yaml
+kubectl apply -f ./ingress-iap/ingress.yaml
+```
+
+Give the authorized users required priviledge to access the service. [Guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#iap-access)

@@ -30,7 +30,7 @@ RUN set -ex && cd stable-diffusion-webui \
     && pip install -r extensions/sd-webui-controlnet/requirements.txt --prefer-binary
 
 RUN pip install opencv-contrib-python-headless opencv-python-headless tensorrt --prefer-binary
-RUN pip install -U --pre xformers torch torchvision --prefer-binary
+RUN pip install -U --pre xformers torch==2.0.0+cu117 torchvision==0.15.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 --prefer-binary
 RUN pip install -U tensorboard google-auth-oauthlib tb-nightly open-clip-torch clean-fid --prefer-binary
 
 ARG CUDNN_PATH=$(dirname $(python3 -c "import nvidia.cudnn;print(nvidia.cudnn.__file__)"))

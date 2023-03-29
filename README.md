@@ -133,8 +133,9 @@ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stack
 
 Deploy horizonal pod autoscale policy on the stable-diffusion deployment
 ```
-kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hap.yaml
+kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hpa.yaml
 ```
+Note: if in GKE clsuter that enable GPU timesharing feature gate, please using the hpa-timeshare.yaml, before deployment, substitude the GKE_CLUSTER_ANME in the file.
 
 ## Other notes
 ### About multi users/session

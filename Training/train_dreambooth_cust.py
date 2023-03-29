@@ -485,10 +485,12 @@ if __name__ == '__main__':
     if str(args.pretrained_model_name_or_path).startswith('gs://'):
         subprocess.run("gcloud storage cp -r {} .".format(args.pretrained_model_name_or_path), shell=True)
         args.pretrained_model_name_or_path = os.path.basename(str(args.pretrained_model_name_or_path).strip('/'))
+        # args.pretrained_model_name_or_path = str(args.pretrained_model_name_or_path).replace('gs://', '/gcs/')
 
     if str(args.instance_data_dir).startswith('gs://'):
         subprocess.run("gcloud storage cp -r {} .".format(args.instance_data_dir), shell=True)
         args.instance_data_dir = os.path.basename(str(args.instance_data_dir).strip('/'))
+        # args.instance_data_dir = str(args.instance_data_dir).replace('gs://', '/gcs/')
 
     if os.path.isfile(args.pretrained_model_name_or_path):
         file = args.pretrained_model_name_or_path
@@ -566,7 +568,7 @@ if __name__ == '__main__':
         args.lr_scheduler = "polynomial"
         num_instance_images = len(glob(os.path.join(args.instance_data_dir, '*')))
         args.num_class_images = num_instance_images * 12
-        args.max_train_steps = min(int(num_instance_images * 80 * 1.25), 1500)
+        args.max_train_steps = min(int(num_instance_images * 80 * 1.25), 2000)
         args.lr_warmup_steps = args.max_train_steps // 10
         args.checkpoints_total_limit = 5
         args.checkpointing_steps = args.max_train_steps // args.checkpoints_total_limit
@@ -588,6 +590,7 @@ if __name__ == '__main__':
     if str(args.output_dir).startswith('gs://'):
         gcs_output_dir = args.output_dir
         args.output_dir = os.path.basename(str(args.output_dir).strip('/'))
+        # args.output_dir = str(args.output_dir).replace('gs://', '/gcs/')
 
     print("DEBUG: arguments before start training...")
     pprint(vars(args))

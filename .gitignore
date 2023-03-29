@@ -7,8 +7,11 @@ Training/**
 !Training/*.sh
 !Training/*.ipynb
 !Training/*.md
+!Training/*.yaml
+!Training/Dockerfile
 Preprocess/**
 !Preprocess/*.py
 !Preprocess/*.sh
 !Preprocess/*.ipynb
 !Preprocess/*.md
+!Preprocess/*.yaml

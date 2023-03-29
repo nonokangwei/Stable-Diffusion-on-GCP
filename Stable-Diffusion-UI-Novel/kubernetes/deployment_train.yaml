@@ -17,7 +17,7 @@ spec:
       volumes:
         - name: stable-diffusion-storage
           persistentVolumeClaim:
-            claimName: vol1
+            claimName: vol2
       containers:
       - name: stable-diffusion-webui
         image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:train

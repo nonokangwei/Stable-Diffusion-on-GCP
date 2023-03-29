@@ -326,7 +326,8 @@ def parse_args_main(input_args=None):
     
 def main(args):
     # for complex commands, with many args, use string + `shell=True`:
-    cmd_str="accelerate launch {}train_dreambooth_cust.py ".format("--multi_gpu " if torch.cuda.device_count() > 1 else "")
+    cmd_str="accelerate launch {}train_dreambooth_cust.py ".format(
+        "--multi_gpu --num_processes={} --num_machines=1 --gpu_ids=all ".format(torch.cuda.device_count()) if torch.cuda.device_count() > 1 else "")
     for k, v in vars(args).items():
         if "_prompt" in k and v is not None:
             if v[0] != "\"":

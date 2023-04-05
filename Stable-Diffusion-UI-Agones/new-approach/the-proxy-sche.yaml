@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: py-gpu-sche
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: py-gpu-sche
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: ServiceAccount
+  name: py-gpu-sche
+  namespace: default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ngx-scheduler
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: ngx-scheduler
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: basic-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "nginx-ext-ip"
+    networking.gke.io/managed-certificates: managed-cert
+    kubernetes.io/ingress.class: "gce"
+    beta.cloud.google.com/backend-config: '{"default": "config-default"}'
+spec:
+  defaultBackend:
+    service:
+      name: ngx-scheduler
+      port:
+        number: 8080
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: managed-cert
+spec:
+  domains:
+    - ${YOUR_DOMAIN_NAME}
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: config-default
+  namespace: default
+spec:
+  timeoutSec: 7200
+  iap:
+    enabled: true
+    oauthclientCredentials:
+      secretName: iap-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ngx-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ngx-scheduler
+  template:
+    metadata:
+      labels:
+        app: ngx-scheduler
+    spec:
+      serviceAccountName: py-gpu-sche
+      containers:
+      - name: py-gpu-sche
+        image: us-docker.pkg.dev/jscheng-cloudrun/cr/py-gpu-sche:0.2.35
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+      - name: stable-diffusion-webui
+        image: us-central1-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
+        ports:
+        - containerPort: 7860
+          protocol: TCP        
+        resources:
+          limits:
+            nvidia.com/gpu: "1"
+        volumeMounts:
+            # name must match the volume name below
+            - name: nfs
+              mountPath: "/stable-diffusion-webui/outputs/"            
+      volumes:
+      - name: nfs
+        persistentVolumeClaim:
+          claimName: nfs

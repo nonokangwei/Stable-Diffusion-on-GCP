@@ -6,6 +6,8 @@ Foobar is a Python library for dealing with word pluralization.
 
 Make sure that you have the necessary permissions on your user account:
 
+- ROLE: roles/artifactregistry.admin
+
 - ROLE: roles/compute.admin
 
 - ROLE: roles/compute.instanceAdmin.v1
@@ -30,7 +32,7 @@ locals {
 }
 ```
 
-## Provision Infrastructure (VPC | Subnet | NAT | FileStore | GKE)
+## Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE | GKE FileStore PV and PVC  )
 
 ```bash
 # init terraform

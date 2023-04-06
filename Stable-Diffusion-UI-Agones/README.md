@@ -72,7 +72,7 @@ Build image with provided Dockerfile, push to repo in Cloud Artifacts
 ```
 cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
-docker push 
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
 
 ```
 

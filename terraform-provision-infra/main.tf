@@ -1,8 +1,20 @@
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "4.60.1"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.19.0"
+    }
+  }
+}
 locals {
-  project_id    = "PROJECT_ID"   # replace with your project id
-  region        = "us-central1"   # replace with your prefer region
-  zone          = "us-central1-f" # replace with your prefer zone
-  gke_num_nodes = 1               # replace with your init gke node pool size
+  project_id    = "star-ai-poc"
+  region        = "us-central1"
+  zone          = "us-central1-f"
+  gke_num_nodes = 1
 }
 provider "google" {
   project = local.project_id
@@ -127,8 +139,11 @@ resource "google_container_node_pool" "gpu_nodes" {
   node_count = local.gke_num_nodes
   node_config {
     oauth_scopes = [
+      #      "https://www.googleapis.com/auth/logging.write",
+      #      "https://www.googleapis.com/auth/monitoring",
       "https://www.googleapis.com/auth/cloud-platform"
     ]
+    #    service_account = "gke-svc-acct@star-ai-poc.iam.gserviceaccount.com"
 
     labels = {
       env = local.project_id
@@ -160,7 +175,8 @@ resource "google_container_node_pool" "gpu_nodes" {
     }
   }
 }
-
+#gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD
+#--file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
 resource "google_filestore_instance" "instance" {
   name     = "nfs-store"
   location = "us-central1-b"
@@ -175,6 +191,12 @@ resource "google_filestore_instance" "instance" {
     network = google_compute_network.vpc.name
     modes   = ["MODE_IPV4"]
   }
+}
+resource "google_artifact_registry_repository" "sd_repo" {
+  location      = local.region
+  repository_id = "sd-repository"
+  description   = "stable diffusion repository"
+  format        = "DOCKER"
 }
 output "region" {
   value       = local.region
@@ -195,7 +217,12 @@ output "kubernetes_cluster_host" {
   value       = google_container_cluster.gke.endpoint
   description = "GKE Cluster Host"
 }
-output "google_filestore_reserved_ip_addr" {
-  value       = google_filestore_instance.instance.networks[0].ip_addresses
+output "google_filestore_reserved_ip_range" {
+  value       = google_filestore_instance.instance.networks[0].ip_addresses[0]
   description = "google_filestore_instance reserved_ip_range"
+}
+#gcloud auth configure-docker ${REGION}-docker.pkg.dev
+output "gcloud_artifacts_repositories_auth_cmd" {
+  value       = "gcloud auth configure-docker ${local.region}-docker.pkg.dev"
+  description = "repositories login gcloud example"
 }

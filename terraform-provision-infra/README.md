@@ -32,9 +32,26 @@ locals {
 }
 ```
 
-## Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE | GKE FileStore PV and PVC  )
+## Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE  )
 
 ```bash
+# init terraform
+terraform init
+
+# deploy Infrastructure
+terraform plan
+terraform apply -auto-approve
+
+# destroy Infrastructure
+terraform destroy -auto-approve
+```
+
+## Deploy  Kubernetes sample deployment (GKE FileStore PV and PVC | GPU Driver | SD deployment | SD Service LB )
+
+```bash
+# switch to kubernetes sample directory
+cd kubernetes-sample/
+
 # init terraform
 terraform init
 

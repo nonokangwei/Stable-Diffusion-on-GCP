@@ -1,8 +1,16 @@
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.19.0"
+    }
+  }
+}
 data "terraform_remote_state" "gke" {
   backend = "local"
 
   config = {
-    path = "terraform.tfstate"
+    path = "../terraform.tfstate"
   }
 }
 
@@ -12,14 +20,13 @@ data "terraform_remote_state" "gke" {
 data "google_client_config" "default" {}
 
 data "google_container_cluster" "my_cluster" {
+  project  = data.terraform_remote_state.gke.outputs.project_id
   name     = data.terraform_remote_state.gke.outputs.kubernetes_cluster_name
   location = data.terraform_remote_state.gke.outputs.region
 }
 
 provider "kubernetes" {
-  host = "https://${data.terraform_remote_state.gke.outputs.kubernetes_cluster_host}"
-  #  data.terraform_remote_state.gke.outputs.kubernetes_cluster_host
-
+  host                   = "https://${data.terraform_remote_state.gke.outputs.kubernetes_cluster_host}"
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(data.google_container_cluster.my_cluster.master_auth[0].cluster_ca_certificate)
 }
@@ -67,3 +74,20 @@ resource "kubernetes_persistent_volume_claim_v1" "nfs_pvc" {
   }
 }
 
+resource "null_resource" "connect_cluster" {
+  provisioner "local-exec" {
+    command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name} --region ${data.terraform_remote_state.gke.outputs.region} --project ${data.terraform_remote_state.gke.outputs.project_id}"
+  }
+}
+
+resource "null_resource" "node_gpu_driver" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
+  }
+}
+
+resource "null_resource" "sample_sd15_deployment" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f deployment_sd15.yaml"
+  }
+}

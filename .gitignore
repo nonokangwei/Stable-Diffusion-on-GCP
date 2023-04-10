@@ -15,3 +15,10 @@ Preprocess/**
 !Preprocess/*.ipynb
 !Preprocess/*.md
 !Preprocess/*.yaml
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*

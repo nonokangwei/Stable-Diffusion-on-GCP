@@ -35,7 +35,6 @@ ARG CUDNN_PATH=$(dirname $(python3 -c "import nvidia.cudnn;print(nvidia.cudnn.__
 ARG TENSORRT_PATH=$(dirname $(python3 -c "import tensorrt;print(tensorrt.__file__)"))
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/usr/local/cuda/lib64:$CUDNN_PATH:$TENSORRT_PATH
 
-
 EXPOSE 7860
 
 WORKDIR /stable-diffusion-webui/

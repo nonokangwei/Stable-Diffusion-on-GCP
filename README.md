@@ -100,8 +100,8 @@ gcloud compute routers nats create nat-gw --router=nat-router --region ${REGION}
 # For regional cluster
 gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
 
-# For regional cluster
-gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
+# For zonal cluster
+gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} ---zone ${ZONE}
 
 ```
 
@@ -117,7 +117,6 @@ BUILD_REGIST=<replace this with your preferred Artifacts repo name>
 gcloud artifacts repositories create ${BUILD_REGIST} --repository-format=docker \
 --location=${REGION}
 
-gcloud auth configure-docker ${REGION}-docker.pkg.dev
 ```
 
 
@@ -129,6 +128,7 @@ Please note I have prepared two individual Dockerfile for inference and training
 cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel/docker_inference
 
 # build image local (machine at least 8GB memory avaliable)
+gcloud auth configure-docker ${REGION}-docker.pkg.dev
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:inference
 docker push 
 
@@ -157,12 +157,11 @@ gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HD
 ### Enable Node Pool Autoscale
 Set the Node pool with cluster autoscale(CA) capability, when the horizonal pod autocale feature scale up the pod replica size, it will trigger the node pool scale out to provide required GPU resource.
 ```
-gcloud container clusters update ${GKE_CLUSTER_NAME} \
-    --enable-autoscaling \
-    --node-pool=default-pool \
-    --min-nodes=0 \
-    --max-nodes=5 \
-    --region=${REGION}
+# For regional cluster
+gcloud container clusters update ${GKE_CLUSTER_NAME} --enable-autoscaling --node-pool=default-pool --min-nodes=0 --max-nodes=5 --region=${REGION}
+
+# For zonal cluster
+gcloud container clusters update ${GKE_CLUSTER_NAME} --enable-autoscaling --node-pool=default-pool --min-nodes=0 --max-nodes=5 ---zone ${ZONE}
 ```
 
 ### Enable Horizonal Pod Autoscale(HPA)
@@ -170,8 +169,7 @@ Install the stackdriver adapter to enable the stable-diffusion deployment scale 
 
 ```
 # optional, just to ensure you have necessary privilege for the cluster
-kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole cluster-admin --user "$(gcloud config get-value account)"
+kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user "$(gcloud config get-value account)"
 ```
 
 ```

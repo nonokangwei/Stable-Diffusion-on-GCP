@@ -35,6 +35,9 @@ locals {
 ## Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE  )
 
 ```bash
+# switch to work directory
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
+
 # init terraform
 terraform init
 
@@ -50,7 +53,7 @@ terraform destroy -auto-approve
 
 ```bash
 # switch to kubernetes sample directory
-cd kubernetes-sample/
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/kubernetes-sample/
 
 # init terraform
 terraform init
@@ -67,7 +70,7 @@ terraform destroy -auto-approve
 
 ```bash
 # switch to cloudbuild directory
-cd cloudbuild-sample/
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/cloudbuild-sample/
 
 # edit cloudbuild file
 replace line 3 and line 7 tags with your repo tag  # e.g. us-central1-docker.pkg.dev/PROJECT_ID/sd-repository/sd-webui:train

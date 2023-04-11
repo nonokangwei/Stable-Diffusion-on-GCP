@@ -38,14 +38,16 @@ We will also enable [GPU time sharing](https://cloud.google.com/kubernetes-engin
 We used a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod. \
 
 **NOTE: If you are creating a private cluster, create [Cloud NAT gateway](https://cloud.google.com/nat/docs/gke-example#create-nat) to ensure you node pool has access to the internet.**
-```
+```shell
 PROJECT_ID=<replace this with your project id>
 GKE_CLUSTER_NAME=<replace this with your GKE cluster name>
 REGION=<replace this with your region>
+ZONE=<replace this with your zone>
 VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
 CLIENT_PER_GPU=<replace this with the number of clients to share 1 GPU, a proper value is 2 or 3>
 
+# create a regional cluster
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
     --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
     --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \
@@ -61,6 +63,36 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform --no-enable-autoprovisioning-autorepair \
     --enable-autoprovisioning-autoupgrade --autoprovisioning-max-surge-upgrade 1 --autoprovisioning-max-unavailable-upgrade 0 \
     --enable-vertical-pod-autoscaling --enable-shielded-nodes
+
+
+# create a zonal cluster
+gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --zone ${ZONE} \
+    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
+    --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \
+    --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
+    --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
+    --num-nodes "1" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-private-nodes \
+    --master-ipv4-cidr "172.16.1.0/28" --enable-ip-alias --network "projects/${PROJECT_ID}/global/networks/${VPC_NETWORK}" \
+    --subnetwork "projects/${PROJECT_ID}/regions/${REGION}/subnetworks/${VPC_SUBNETWORK}" \
+    --no-enable-intra-node-visibility --default-max-pods-per-node "110" --no-enable-master-authorized-networks \
+    --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver,GcpFilestoreCsiDriver \
+    --enable-autoupgrade --no-enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 \
+    --enable-autoprovisioning --min-cpu 1 --max-cpu 64 --min-memory 1 --max-memory 256 \
+    --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform --no-enable-autoprovisioning-autorepair \
+    --enable-autoprovisioning-autoupgrade --autoprovisioning-max-surge-upgrade 1 --autoprovisioning-max-unavailable-upgrade 0 \
+    --enable-vertical-pod-autoscaling --enable-shielded-nodes
+
+
+```
+
+### Create NAT and Cloud Router (Optional if you create a private cluster)
+```shell
+# create cloud router
+gcloud compute routers create nat-router --network ${VPC_NETWORK} --region ${REGION}
+
+# create nat 
+gcloud compute routers nats create nat-gw --router=nat-router --region ${REGION} --auto-allocate-nat-external-ips --nat-all-subnet-ip-ranges
+
 ```
 
 ### Get credentials of GKE cluster
@@ -95,8 +127,13 @@ Please note I have prepared two individual Dockerfile for inference and training
 
 ```
 cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel/docker_inference
+
+# build image local (machine at least 8GB memory avaliable)
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:inference
 docker push 
+
+# build image with cloud build
+gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=${REGION} -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:inference 
 
 ```
 
@@ -145,7 +182,7 @@ Deploy horizonal pod autoscale policy on the stable-diffusion deployment
 ```
 kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hpa.yaml
 ```
-Note: if in GKE clsuter that enable GPU timesharing feature gate, please using the hpa-timeshare.yaml, before deployment, substitude the GKE_CLUSTER_ANME in the file.
+Note: if in GKE clsuter that enable GPU timesharing feature gate, please using the hpa-timeshare.yaml, before deployment, substitude the GKE_CLUSTER_NAME in the file.
 
 ## Other notes
 ### About multi users/session

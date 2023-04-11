@@ -4,8 +4,8 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
 
 * [Introduction](#Introduction)
 * [How-To-Manual-provision-infra](#how-to)
-* [How-To-terraform-provision-infra](./blob/terraform-provision-infra/terraform-provision-infra/README.md)
-* [How-To-build-images-use-cloudbuild](./blob/terraform-provision-infra/terraform-provision-infra/README.md)
+* [How-To-terraform-provision-infra](./terraform-provision-infra/terraform-provision-infra/README.md)
+* [How-To-build-images-use-cloudbuild](./terraform-provision-infra/terraform-provision-infra/README.md)
 
 ## Introduction
    This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image.

@@ -1,0 +1,25 @@
+FROM gcr.io/deeplearning-platform-release/base-gpu.py310
+
+RUN apt-get update
+
+WORKDIR /root
+
+#install sd libraries
+RUN git clone --recurse-submodules https://github.com/Akegarasu/lora-scripts
+
+RUN pip install -U accelerate xformers safetensors tqdm ftfy loralib evaluate psutil pyyaml packaging  transformers bitsandbytes==0.35.0
+
+RUN pip install -U diffusers[torch]==0.10.2
+RUN pip install -U albumentations opencv-python-headless einops pytorch-lightning gradio altair easygui toml voluptuous timm fairscale huggingface-hub
+RUN pip install -U tensorflow==2.10.1 tensorboard==2.10.1
+RUN pip install -U --upgrade lion-pytorch lycoris-lora
+
+#install pytorch
+RUN pip install torch==2.0.0+cu118 torchvision==0.15.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+
+# Copies the trainer code to the docker image.
+COPY train_kohya.py /root/train_kohya.py
+
+# Sets up the entry point to invoke the trainer.
+#ENTRYPOINT ["python3", "-m", "train_kohya"]
+

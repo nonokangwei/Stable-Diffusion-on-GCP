@@ -22,7 +22,7 @@ data "google_client_config" "default" {}
 data "google_container_cluster" "my_cluster" {
   project  = data.terraform_remote_state.gke.outputs.project_id
   name     = data.terraform_remote_state.gke.outputs.kubernetes_cluster_name
-  location = data.terraform_remote_state.gke.outputs.region
+  location = data.terraform_remote_state.gke.outputs.gke_location
 }
 
 provider "kubernetes" {
@@ -74,9 +74,16 @@ resource "kubernetes_persistent_volume_claim_v1" "nfs_pvc" {
   }
 }
 
-resource "null_resource" "connect_cluster" {
+resource "null_resource" "connect_regional_cluster" {
+  count = data.terraform_remote_state.gke.outputs.cluster_type=="regional" ? 1 : 0
   provisioner "local-exec" {
-    command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name} --region ${data.terraform_remote_state.gke.outputs.region} --project ${data.terraform_remote_state.gke.outputs.project_id}"
+    command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name} --region ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
+  }
+}
+resource "null_resource" "connect_zonal_cluster" {
+  count = data.terraform_remote_state.gke.outputs.cluster_type=="zonal" ? 1 : 0
+  provisioner "local-exec" {
+    command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name}  --zone ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
   }
 }
 

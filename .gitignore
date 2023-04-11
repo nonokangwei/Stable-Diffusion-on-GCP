@@ -22,3 +22,8 @@ Preprocess/**
 # .tfstate files
 *.tfstate
 *.tfstate.*
+
+# terraform version lock files
+*.terraform.lock.hcl
+
+

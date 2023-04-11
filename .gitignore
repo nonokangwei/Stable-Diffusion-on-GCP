@@ -24,6 +24,7 @@ Preprocess/**
 *.tfstate.*
 
 # terraform version lock files
-*.terraform.lock.hcl
+terraform-provision-infra/.terraform.lock.hcl
+terraform-provision-infra/kubernetes-sample/.terraform.lock.hcl
 
 

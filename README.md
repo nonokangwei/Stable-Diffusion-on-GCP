@@ -3,7 +3,9 @@
 This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. User can just follow the step have your stable diffusion model running.
 
 * [Introduction](#Introduction)
-* [How-To](#how-to)
+* [How-To-Manual-provision-infra](#how-to)
+* [How-To-terraform-provision-infra](./blob/terraform-provision-infra/terraform-provision-infra/README.md)
+* [How-To-build-images-use-cloudbuild](./blob/terraform-provision-infra/terraform-provision-infra/README.md)
 
 ## Introduction
    This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image.

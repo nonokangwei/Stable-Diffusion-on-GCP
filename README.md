@@ -3,7 +3,7 @@
 This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. User can just follow the step have your stable diffusion model running.
 
 * [Introduction](#Introduction)
-* [How-To-Manual-provision-infra](#How-To-Manual-provision-infra])
+* [How-To-Manual-provision-infra](#How-To-Manual-provision-infra)
 * [How-To-terraform-provision-infra](./terraform-provision-infra/README.md)
 * [How-To-build-images-use-cloudbuild](./terraform-provision-infra/README.md)
 

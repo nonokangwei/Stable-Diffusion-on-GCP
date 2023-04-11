@@ -88,7 +88,7 @@ spec:
         - containerPort: 8080
           protocol: TCP
       - name: stable-diffusion-webui
-        image: us-central1-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
+        image: us-central1-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui-x:0.1
         ports:
         - containerPort: 7860
           protocol: TCP        

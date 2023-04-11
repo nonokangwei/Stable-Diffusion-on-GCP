@@ -3,7 +3,7 @@
 This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. User can just follow the step have your stable diffusion model running.
 
 * [Introduction](#Introduction)
-* [How-To-Manual-provision-infra](#how-to)
+* [How-To-Manual-provision-infra](#How-To-Manual-provision-infra])
 * [How-To-terraform-provision-infra](./terraform-provision-infra/README.md)
 * [How-To-build-images-use-cloudbuild](./terraform-provision-infra/README.md)
 
@@ -22,7 +22,7 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
 * Optimized for vram saving, Inference+Training can be done in a T4 GPU
 * No intrusive change against 1111 webui, easy to upgrade or install extensions with Dockerfile
 
-## How To
+## How-To-Manual-provision-infra
 you can use the cloud shell as the run time to do below steps.
 ### Before you begin
 1. make sure you have an available GCP project for your deployment
@@ -63,12 +63,17 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
 ```
 
 ### Get credentials of GKE cluster
-```
+```shell
+# For regional cluster
 gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
+
+# For regional cluster
+gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
+
 ```
 
 ### Install GPU Driver
-```
+```shell
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 ```
 

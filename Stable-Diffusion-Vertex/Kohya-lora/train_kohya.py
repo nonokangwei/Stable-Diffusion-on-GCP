@@ -40,7 +40,6 @@ def main(args):
                    f'--enable_bucket '
                    f'--pretrained_model_name_or_path="{MODEL_NAME}" '
                    f'--train_data_dir="{INSTANCE_DIR}" '
-                   f'--in_json="{METADATA_DIR}" '
                    f'--output_dir="{OUTPUT_DIR}" '
                    f'--logging_dir="{OUTPUT_DIR}/logs" '
                    f'--log_prefix="{DISPLAY_NAME}_logs" '
@@ -82,11 +81,26 @@ def main(args):
             cmd_str += f' --use_lion_optimizer'
         if NOISE_OFFSET:
             cmd_str += f' --noise_offset={NOISE_OFFSET}'
-
+        if METADATA_DIR is not None:
+            cmd_str += f' --in_json="{METADATA_DIR}"'
     
     # start training
     subprocess.run(cmd_str, shell=True)
 
+    if bool(args.save_nfs) == True:
+        nfs_path = "/mnt/nfs/model_repo"
+
+        if not os.path.exists(nfs_path):
+            print("nfs not exist")
+        else:
+            if not os.path.exists(nfs_path + '/model'):
+               os.mkdir(nfs_path + '/model')
+               print(f"{nfs_path}/model has been created.")
+            else:
+               print(f"{nfs_path}/model already exists.")
+            copy_cmd = f'cp {OUTPUT_DIR}/*.safetensors {nfs_path}/model'
+            subprocess.run(copy_cmd, shell=True)
+            subprocess.run(f'ls {nfs_path}/model', shell=True)
 
 
 if __name__ == "__main__":
@@ -95,7 +109,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_cpu_threads", type=int, default=8, help="num of cpu threads per process")
     parser.add_argument("--model_name", type=str, default="runwayml/stable-diffusion-v1-5", help="bucket_name/model_folder")
     parser.add_argument("--input_storage", type=str,default="/root/dog_image_resize", help="/gcs/bucket_name/input_image_folder")
-    parser.add_argument("--metadata_storage" type=str,default=None, help="/gcs/bucket_name/metadata_path_in_json_format")
+    parser.add_argument("--metadata_storage", type=str, default=None, help="metadata json path, for native training")
     parser.add_argument("--output_storage", type=str, default="/root/dog_output", help="/gcs/bucket_name/output_folder")
     parser.add_argument("--display_name", type=str, default="sks_dog", help="prompt")
     parser.add_argument("--resolution", type=str, default="512,512", help="resolution group")
@@ -113,7 +127,23 @@ if __name__ == "__main__":
     parser.add_argument("--use_8bit_adam", type=bool, default=True, help="use 8bit adam optimizer")
     parser.add_argument("--use_lion", type=bool, default=False, help="lion optimizer")
     parser.add_argument("--noise_offset", type=int, default=0, help="0.1 if use")
+    parser.add_argument("--save_nfs", type=bool, default=False, help="if save the model to file store")
+    parser.add_argument("--save_nfs_only", type=bool, default=False, help="only copy file from gcs to filestore, no training")
 
     args = parser.parse_args()
     print(args)
-    main(args)
+    if bool(args.save_nfs_only) == True:
+        nfs_path = "/mnt/nfs/model_repo"
+        if not os.path.exists(nfs_path):
+            print("nfs not exist")
+        else:
+            if not os.path.exists(nfs_path + '/model'):
+               os.mkdir(nfs_path + '/model')
+               print(f"{nfs_path}/model has been created.")
+            else:
+               print(f"{nfs_path}/model already exists.")
+            copy_cmd = f'cp {args.output_storage}/*.safetensors {nfs_path}/model'
+            subprocess.run(copy_cmd, shell=True)
+            subprocess.run(f'ls {nfs_path}/model', shell=True) 
+    else:
+       main(args)

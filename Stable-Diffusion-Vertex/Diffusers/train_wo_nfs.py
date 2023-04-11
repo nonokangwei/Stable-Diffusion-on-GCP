@@ -204,21 +204,6 @@ def main(args):
     if (METHOD == "diffuser_dreambooth") or (METHOD == "diffuser_text_to_image"):
         subprocess.run(f'python3 /root/diffusers/scripts/convert_diffusers_to_original_stable_diffusion.py --model_path {OUTPUT_DIR} --checkpoint_path {OUTPUT_DIR}/dreambooth.safetensors --use_safetensors', shell=True)
 
-    if bool(args.save_nfs) == True:
-        nfs_path = "/mnt/nfs/model_repo"
-
-        if not os.path.exists(nfs_path):
-            print("nfs not exist")
-        else:
-            if not os.path.exists(nfs_path + '/model'):
-               os.mkdir(nfs_path + '/model')
-               print(f"{nfs_path}/model has been created.")
-            else:
-               print(f"{nfs_path}/model already exists.")
-            copy_cmd = f'cp {OUTPUT_DIR}/*.safetensors {nfs_path}/model'
-            subprocess.run(copy_cmd, shell=True)
-            subprocess.run(f'ls {nfs_path}/model', shell=True)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -240,23 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("--gradient_accumulation_steps", type=int, default=1, help="gradient accumulation steps")
     parser.add_argument("--num_validation_images", type=int, default=4, help="num_validation_images, text_to_image_lora")
     parser.add_argument("--validation_prompt", type=str, default="a photo of sks dog in the forest", help="validation prompt")
-    parser.add_argument("--save_nfs", type=bool, default=False, help="if save the model to file store")
-    parser.add_argument("--save_nfs_only", type=bool, default=False, help="only copy file from gcs to filestore, no training")
 
     args = parser.parse_args()
     print(args)
-    if bool(args.save_nfs_only) == True:
-        nfs_path = "/mnt/nfs/model_repo"
-        if not os.path.exists(nfs_path):
-            print("nfs not exist")
-        else:
-            if not os.path.exists(nfs_path + '/model'):
-               os.mkdir(nfs_path + '/model')
-               print(f"{nfs_path}/model has been created.")
-            else:
-               print(f"{nfs_path}/model already exists.")
-            copy_cmd = f'cp {args.output_storage}/*.safetensors {nfs_path}/model'
-            subprocess.run(copy_cmd, shell=True)
-            subprocess.run(f'ls {nfs_path}/model', shell=True) 
-    else:
-       main(args)
+    main(args)

@@ -23,6 +23,7 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
 * No intrusive change against 1111 webui, easy to upgrade or install extensions with Dockerfile
 
 ## How-To-Manual-provision-infra
+
 you can use the cloud shell as the run time to do below steps.
 ### Before you begin
 1. make sure you have an available GCP project for your deployment

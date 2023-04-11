@@ -4,8 +4,8 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
 
 * [Introduction](#Introduction)
 * [How-To-Manual-provision-infra](#how-to)
-* [How-To-terraform-provision-infra](./terraform-provision-infra/terraform-provision-infra/README.md)
-* [How-To-build-images-use-cloudbuild](./terraform-provision-infra/terraform-provision-infra/README.md)
+* [How-To-terraform-provision-infra](./terraform-provision-infra/README.md)
+* [How-To-build-images-use-cloudbuild](./terraform-provision-infra/README.md)
 
 
 

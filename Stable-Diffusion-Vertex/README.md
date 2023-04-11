@@ -132,14 +132,27 @@ After sumit training job to Vertex AI, you can monitor its status in Cloud UI.
 
 ![Vertex AI custom training UI](./images/custom_training_status.png)
 
+### Copy safetensors model to File Store
+We also add Filestore support. If you have created a Filestore, and configure the network as [instructed](https://cloud.google.com/vertex-ai/docs/training/train-nfs-share). In custom training, the model can also be saved to File Store. In this project, the File Store's share name is restricted as **vol1**, and mount path is restricted as */mnt/nfs/model_repo*.
+
+![File Store](./images/FileStore.png)
+
+In Diffusers folder, *train_wo_nfs.py* does not include NFS function, and regular *train.py* contains the NFS function. You can use *Vertex-config-nfs.yaml* and submit training job with **save_nfs=True** arguments to enable models saving to File Store. 
+
+And if argument **save_nfs_only=True** is selected, then it only executes copy models task from GCS (*output_storage*) to File Store(*"/mnt/nfs/model_repo"*), so **output_storage** also needs to be selected in this mode. Other arguments are not used.
+
+In Kohya-lora folder, the same.
+
 ### File architecture
 
 ```
 |-- Diffusers
 |------ train.py #model training file in Docker
+|------ train_wo_nfs.py #model training file but no nfs function
 |------ Dockerfile
 |------ cloud-build-config.yaml #cloud config file used in CLI
 |------ vertex-config.yaml  #Vertex AI custom training config file used in CLI
+|------ vertex-config-nfs.yaml  #Vertex AI custom training and nfs config
 |------ cloud-cli.sh #sample cloud command
 |------ metadata.jsonl #metadata file for Text-to-Image training
 |
@@ -147,6 +160,7 @@ After sumit training job to Vertex AI, you can monitor its status in Cloud UI.
 |------ train_kohya.py #model training file in Docker
 |------ Dockerfile_kohya
 |------ cloud-build-config-kohya.yaml #cloud config file used in CLI
+|------ vertex-config-nfs.yaml  #Vertex AI custom training and nfs config
 |------ vertex-config.yaml  #Vertex AI custom training config file used in CLI
 |------ cloud-cli.sh #sample cloud command
 |

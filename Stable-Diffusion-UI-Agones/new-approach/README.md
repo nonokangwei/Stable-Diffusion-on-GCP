@@ -72,8 +72,8 @@ gcloud auth configure-docker ${REGION}-docker.pkg.dev
 Build image with provided Dockerfile, push to repo in Cloud Artifacts
 
 ```
-cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel
-docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
+cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/new-approach/webui
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui-x:0.1
 docker push 
 
 ```
@@ -104,6 +104,15 @@ Note: for quick start, you can using the cloud shell which has helm installed al
 helm repo add agones https://agones.dev/chart/stable
 helm repo update
 helm install sd-agones-release --namespace agones-system -f ./agones/values.yaml agones/agones
+```
+
+#### Deal with Agones privilege
+
+After install, make agones roles being aggreated to admin:
+```
+kubectl label clusterroles agones-allocator rbac.authorization.k8s.io/aggregate-to-admin="true"
+kubectl label clusterroles agones-sdk rbac.authorization.k8s.io/aggregate-to-admin="true" 
+kubectl label clusterroles agones-controller rbac.authorization.k8s.io/aggregate-to-admin="true" 
 ```
 
 ### Build the proxy image

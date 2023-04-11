@@ -63,6 +63,22 @@ terraform apply -auto-approve
 terraform destroy -auto-approve
 ```
 
+## Use cloudbuild build container images
+
+```bash
+# switch to cloudbuild directory
+cd cloudbuild-sample/
+
+# edit cloudbuild file
+replace line 3 and line 7 tags with your repo tag  # e.g. us-central1-docker.pkg.dev/PROJECT_ID/sd-repository/sd-webui:train
+
+# put your Dockerfile into this directory
+cp your_dockerfile_path/Dockerfile Dockerfile
+
+# submit cloudbuild job (recommend use same region as artifact repository)
+gcloud builds submit --region=us-central1 --config cloudbuild.yaml
+```
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first

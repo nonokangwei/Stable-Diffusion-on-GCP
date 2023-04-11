@@ -1,7 +1,7 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/star-ai-poc/sd-repository/sd-webui:train', '.' ]
+  args: [ 'build', '-t', 'us-central1-docker.pkg.dev/PROJECT_ID/sd-repository/sd-webui:train', '.' ]
 options:
   machineType: 'E2_HIGHCPU_8'
   diskSizeGb: '200'
-images: ['us-central1-docker.pkg.dev/star-ai-poc/sd-repository/sd-webui:train']
+images: ['us-central1-docker.pkg.dev/PROJECT_ID/sd-repository/sd-webui:train']

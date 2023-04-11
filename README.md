@@ -47,7 +47,7 @@ VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
 CLIENT_PER_GPU=<replace this with the number of clients to share 1 GPU, a proper value is 2 or 3>
 
-# create a regional cluster
+#[option A] gcloud example for create a regional cluster
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
     --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
     --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \
@@ -65,7 +65,7 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --enable-vertical-pod-autoscaling --enable-shielded-nodes
 
 
-# create a zonal cluster
+#[option B] gcloud example for create a zonal cluster
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --zone ${ZONE} \
     --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
     --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \

@@ -32,9 +32,12 @@ locals {
 }
 ```
 
-## Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE | GKE FileStore PV and PVC  )
+## Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE  )
 
 ```bash
+# switch to work directory
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
+
 # init terraform
 terraform init
 
@@ -44,6 +47,39 @@ terraform apply -auto-approve
 
 # destroy Infrastructure
 terraform destroy -auto-approve
+```
+
+## Deploy  Kubernetes sample deployment (GKE FileStore PV and PVC | GPU Driver | SD deployment | SD Service LB )
+
+```bash
+# switch to kubernetes sample directory
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/kubernetes-sample/
+
+# init terraform
+terraform init
+
+# deploy Infrastructure
+terraform plan
+terraform apply -auto-approve
+
+# destroy Infrastructure
+terraform destroy -auto-approve
+```
+
+## Use cloudbuild build container images
+
+```bash
+# switch to cloudbuild directory
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/cloudbuild-sample/
+
+# edit cloudbuild file
+replace line 3 and line 7 tags with your repo tag  # e.g. us-central1-docker.pkg.dev/PROJECT_ID/sd-repository/sd-webui:train
+
+# put your Dockerfile into this directory
+cp your_dockerfile_path/Dockerfile Dockerfile
+
+# submit cloudbuild job (recommend use same region as artifact repository)
+gcloud builds submit --region=us-central1 --config cloudbuild.yaml
 ```
 
 ## Contributing

@@ -14,6 +14,7 @@ locals {
   project_id    = "star-ai-poc"
   region        = "us-central1"
   zone          = "us-central1-f"
+  location      = "us-central1-f"
   gke_num_nodes = 1
 }
 provider "google" {
@@ -68,7 +69,7 @@ resource "google_compute_router_nat" "nat" {
 # GKE cluster
 resource "google_container_cluster" "gke" {
   name                     = "tf-gke-${local.region}"
-  location                 = local.region
+  location                 = local.location
   remove_default_node_pool = true
   initial_node_count       = 1
   network                  = google_compute_network.vpc.name
@@ -130,7 +131,7 @@ resource "google_container_cluster" "gke" {
 # Separately Managed Node Pool
 resource "google_container_node_pool" "gpu_nodes" {
   name     = "auto-scaling-gpu-pool"
-  location = local.region
+  location = local.location
   cluster  = google_container_cluster.gke.name
   autoscaling {
     min_node_count = 1
@@ -198,11 +199,19 @@ resource "google_artifact_registry_repository" "sd_repo" {
   description   = "stable diffusion repository"
   format        = "DOCKER"
 }
+
+output "cluster_type" {
+  value       = local.location==local.region ? "regional" : "zonal"
+  description = "GCloud Region"
+}
 output "region" {
   value       = local.region
   description = "GCloud Region"
 }
-
+output "gke_location" {
+  value       = local.location
+  description = "GCloud Region"
+}
 output "project_id" {
   value       = local.project_id
   description = "GCloud Project ID"

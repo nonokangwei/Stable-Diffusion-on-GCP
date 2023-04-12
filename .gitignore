@@ -15,3 +15,16 @@ Preprocess/**
 !Preprocess/*.ipynb
 !Preprocess/*.md
 !Preprocess/*.yaml
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# terraform version lock files
+terraform-provision-infra/.terraform.lock.hcl
+terraform-provision-infra/kubernetes-sample/.terraform.lock.hcl
+
+

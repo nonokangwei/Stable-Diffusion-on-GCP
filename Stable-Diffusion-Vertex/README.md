@@ -5,7 +5,7 @@ This guide gives simple steps for stable diffusion users to fine-tune stable dif
 * [Introduction](#Introduction)
 * [Build Image](#Build_Image)
 * [Vertex AI custom training](#Vertex_AI_Custom_Training)
-* [Vertex AI Workbench executor](#Vertex_AI_Workbench_Executor)
+* [Vertex AI Workbench](#Vertex_AI_Workbench)
 
 ## Introduction
    [Vertex AI](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform) is a machine learning (ML) platform that lets you train and deploy ML models and AI applications. Vertex AI combines data engineering, data science, and ML engineering workflows, enabling your teams to collaborate using a common toolset.
@@ -169,43 +169,41 @@ In Kohya-lora folder, the same.
 
 # [WIP !!!]
 
-## Vertex AI Workbench Executor
+## Vertex AI Workbench
 
 [Vertex AI Workbench managed notebooks instances](https://cloud.google.com/vertex-ai/docs/workbench/managed/introduction) are Google-managed environments with integrations and capabilities that help you set up and work in an end-to-end Jupyter notebook-based production environment.
 
-The executor lets you submit a notebook (ipynb) file from Workbech, to run on Vertex AI custom training. So it's convinient for codes and parameters fine-tuning, and computing cost saving.
+The managed instance supports adding a custom image as kernel, that you can run your notebook on. It's easy for data scientist to interactively change codes and observe performance, with a pre-built and fixed environment.
 
-We just skip the first two steps as they the same with Vertex AI custom training.
+The executor lets you submit a notebook (ipynb) file from Workbech, to run on Vertex AI custom training. So it's convenient for codes and parameters fine-tuning, and computing cost saving.
 
-### Before you begin
+### Creare user-managed instance
 
-The same with custom training
+Create a user-managed instance in Vertex AI Workbench. If you want to load custom image, make sure to add this custom image when provisioning the instance. You can just use the docker image built in custom training job. It's a uniform image, covering all scenarios.
 
-### Create an Cloud Artifact as docker repo
+![Custom Image](./images/Workbench_Custom_Image.png)
+![Custom Image in Workbench](./images/Workbench_Image_Status.png)
 
-The same with custom training
+### Fine-tune stable diffusion model in Vertex AI Workbench
 
-### Create a Workbench
+Option one is you just fine tune the model in page of notebook. The environment is provided by the custom image, and a GPU needs to be provisioned for training.
 
+You can reference the notebook of [kohya-lora.ipynb](./Workbench/kohya-lora.ipynb). And note that docker image only provides a hosting environment, so the code needs to be downloaded again, and training dataset needs to be uploaded to notebook.
 
-### Build Stable Diffusion image using Cloud Build
+### Fine-tune stable diffusion model in Vertex AI Workbench Executor
 
-1. Change to *Workbench* folder 
+Option two is you submit the training task from notebook to custom training service via Executor. There are several advantages.
+1. You can submit multiple tasks at the same time, no interrupting the notebook environment and occupying notebook's resources. 
+2. The custom training task will directly run the code in Jupyter notebook with no need of refining to python script. 
+3. Connect to GCS and File Store for data and files reading and writing just like local folder. No need to upload data to notebook, or refine the code to adjust to GCS interface.
 
-2. Config project id and artifact repo id and image name in *cloud-build-config.yaml*
-
-3. Build the image using Cloud Build
-
-```
-gcloud builds submit --config cloud-build-config.yaml .
-```
-### Fine-tune stable diffusion model on Vertex AI Workbench
+So the executor process is as below.
 
 1. Upload training images to Cloud Storage
 
 2. [Optional] Upload your customized base model to Cloud Storage
 
-3. Modify code in workbench notebook, using *sd_training_nbexecutor.ipynb* as a sample.
+3. Modify code in workbench notebook, using *diffusers_nbexecutor.ipynb* as a sample.
 
 4. Start an executor job in Workbench
 
@@ -215,22 +213,13 @@ Click **executor** buttor in Workbench notebook, and configure machine size and 
 
 After clicking Submit, it will start a custom training job, run the notebook in the selected container.
 
-### Check the outputs in Cloud Storage
-
+5. Check the outputs in Cloud Storage
 
 The job status can be monitored in Workbench executor tab.
 
 ![Vertex AI Workbench executor status](images/workbench_status.png)
 
 When finished, you can get the fine-tuned model in Cloud Storage output folder. 
-    
+  
 * The *pytorch_lora_weights.bin* file is model in original diffusers format, while *pytorch_lora_weights.safetensors* is converted from .bin file, userd for WebUI.
 * The training logs are also in the event folder.
-
-### File architecture
-
-```
-|-- Dockerfile
-|-- cloud-build-config.yaml #cloud config file used in CLI
-|-- sd_training_executor.ipynb #A sample notebook, showing all codes and commands
-```

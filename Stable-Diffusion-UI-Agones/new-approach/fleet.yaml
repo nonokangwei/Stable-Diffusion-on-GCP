@@ -3,7 +3,7 @@ kind: Fleet
 metadata:
   name: simple-sd-server
 spec:
-  replicas: 0
+  replicas: 1
   template:
     spec:
       container: simple-game-server
@@ -28,7 +28,14 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: us-central1-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
+            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:train
+            command: ["python3"]
+            args:
+            - "webui.py"
+            - "--listen"
+            - "--xformers"
+            - "--medvram"
+            - "--no-gradio-queue"
             resources:
               limits:
                 nvidia.com/gpu: "1"

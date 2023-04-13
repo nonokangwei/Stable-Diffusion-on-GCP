@@ -1,6 +1,6 @@
 #!/bin/bash
 . versions.sh
 cd pyapp
-docker build . -t $REG/py-gpu-sche:$TAG
-docker push $REG/py-gpu-sche:$TAG
+gcloud --project $PROJECT_ID builds submit . -t $REG/py-gpu-sche:$TAG
+#docker push $REG/py-gpu-sche:$TAG
 cd -

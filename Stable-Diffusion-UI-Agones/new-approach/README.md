@@ -107,7 +107,7 @@ helm install sd-agones-release --namespace agones-system -f ./agones/values.yaml
 ```
 
 ### Build the proxy image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua line 15 with the ip address record in previous step.
+Build image with provided Dockerfile, push to repo in Cloud Artifacts. 
 
 ```
 source versions.sh
@@ -145,7 +145,7 @@ kubectl apply -f pv-pvcs.yaml
 Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
 ```
 kubectl apply -f fleet.yaml
-kubectl apply -f ../agones/fleet_autoscale.yaml
+kubectl apply -f fleet_autoscale.yaml
 ```
 
 

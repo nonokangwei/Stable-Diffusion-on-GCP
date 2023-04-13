@@ -16,6 +16,19 @@ subjects:
   name: py-gpu-sche
   namespace: default
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: py-gpu-sche
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: py-gpu-sche
+  namespace: default
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -35,7 +48,7 @@ kind: Ingress
 metadata:
   name: basic-ingress
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: "nginx-ext-ip"
+    kubernetes.io/ingress.global-static-ip-name: "${STATIC_IP_NAME}"
     networking.gke.io/managed-certificates: managed-cert
     kubernetes.io/ingress.class: "gce"
     beta.cloud.google.com/backend-config: '{"default": "config-default"}'
@@ -83,12 +96,19 @@ spec:
       serviceAccountName: py-gpu-sche
       containers:
       - name: py-gpu-sche
-        image: us-docker.pkg.dev/jscheng-cloudrun/cr/py-gpu-sche:0.2.35
+        image: ${REG}/py-gpu-sche:0.2.36
         ports:
         - containerPort: 8080
           protocol: TCP
       - name: stable-diffusion-webui
-        image: us-central1-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
+        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:train
+        command: ["python3"]
+        args:
+        - "webui.py"
+        - "--listen"
+        - "--xformers"
+        - "--medvram"
+        - "--no-gradio-queue"        
         ports:
         - containerPort: 7860
           protocol: TCP        

@@ -167,8 +167,6 @@ In Kohya-lora folder, the same.
 |-- dog_images #sample training images
 ```
 
-# [WIP !!!]
-
 ## Vertex AI Workbench
 
 [Vertex AI Workbench managed notebooks instances](https://cloud.google.com/vertex-ai/docs/workbench/managed/introduction) are Google-managed environments with integrations and capabilities that help you set up and work in an end-to-end Jupyter notebook-based production environment.
@@ -181,8 +179,8 @@ The executor lets you submit a notebook (ipynb) file from Workbech, to run on Ve
 
 Create a user-managed instance in Vertex AI Workbench. If you want to load custom image, make sure to add this custom image when provisioning the instance. You can just use the docker image built in custom training job. It's a uniform image, covering all scenarios.
 
-![Custom Image](./images/Workbench_Custom_Image.png)
-![Custom Image in Workbench](./images/Workbench_Image_Status.png)
+![Custom Image](./images/workbench_custom_image.png)
+![Custom Image in Workbench](./images/workbench_image_tatus.png)
 
 ### Fine-tune stable diffusion model in Vertex AI Workbench
 

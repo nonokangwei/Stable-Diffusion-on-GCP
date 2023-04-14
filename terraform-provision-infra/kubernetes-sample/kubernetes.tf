@@ -99,10 +99,28 @@ resource "null_resource" "node_gpu_driver" {
   provisioner "local-exec" {
     command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
+  }
+}
+
+resource "null_resource" "custom_metrics_stackdriver_adapter" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
+  }
 }
 
 resource "null_resource" "sample_sd15_deployment" {
   provisioner "local-exec" {
     command = "kubectl apply -f deployment_sd15.yaml"
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f deployment_sd15.yaml"
   }
 }

@@ -62,6 +62,9 @@ terraform init
 terraform plan
 terraform apply -auto-approve
 
+# Get SD Web UI LB IP 
+kubectl get ingress
+
 # destroy Infrastructure
 terraform destroy -auto-approve
 ```

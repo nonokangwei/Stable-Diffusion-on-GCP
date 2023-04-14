@@ -227,7 +227,7 @@ resource "google_artifact_registry_repository" "sd_repo" {
 }
 
 output "cluster_type" {
-  value       = local.location==local.region ? "regional" : "zonal"
+  value       = local.location == local.region ? "regional" : "zonal"
   description = "GCloud Region"
 }
 output "region" {

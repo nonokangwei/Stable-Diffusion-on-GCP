@@ -83,13 +83,13 @@ resource "kubernetes_persistent_volume_claim_v1" "nfs_pvc" {
 }
 
 resource "null_resource" "connect_regional_cluster" {
-  count = data.terraform_remote_state.gke.outputs.cluster_type=="regional" ? 1 : 0
+  count = data.terraform_remote_state.gke.outputs.cluster_type == "regional" ? 1 : 0
   provisioner "local-exec" {
     command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name} --region ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
   }
 }
 resource "null_resource" "connect_zonal_cluster" {
-  count = data.terraform_remote_state.gke.outputs.cluster_type=="zonal" ? 1 : 0
+  count = data.terraform_remote_state.gke.outputs.cluster_type == "zonal" ? 1 : 0
   provisioner "local-exec" {
     command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name}  --zone ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
   }

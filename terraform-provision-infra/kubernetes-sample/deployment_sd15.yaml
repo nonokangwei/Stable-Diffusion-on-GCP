@@ -39,19 +39,40 @@ spec:
             name: stable-diffusion-storage
             subPath: outputs
 ---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: sd-webui-backendconfig
+  namespace: default
+spec:
+  sessionAffinity:
+    affinityType: "GENERATED_COOKIE"
+    affinityCookieTtlSec: 1000
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: stable-diffusion-web
-  labels:
-    app: stable-diffusion-sd15
+  name: sd-webui
+  namespace: default
+  annotations:
+    cloud.google.com/backend-config: '{"ports": {"80":"sd-webui-backendconfig"}}'
 spec:
   ports:
-  - protocol: TCP
-    name: web
-    port: 80
+  - port: 80
+    protocol: TCP
     targetPort: 7860
   selector:
     app: stable-diffusion-sd15
-  type: LoadBalancer
-
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sd-webui
+  namespace: default
+spec:
+  defaultBackend:
+    service:
+      name: sd-webui
+      port:
+        number: 80

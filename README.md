@@ -45,7 +45,7 @@ You can also click on the following icon to open this repository in a [Google Cl
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://ssh.cloud.google.com/cloudshell/open?cloudshell_git_repo=https://github.com/nonokangwei/Stable-Diffusion-on-GCP.git&cloudshell_tutorial=README.md)
 
-### Enable APIs
+## Enable APIs
 Start a [Cloud Shell](https://cloud.google.com/shell/docs/run-gcloud-commands) instance to perform the following steps.
 
 In Cloud Shell, enable the required Cloud APIs using the [gcloud CLI](https://cloud.google.com/sdk/docs).
@@ -53,7 +53,7 @@ In Cloud Shell, enable the required Cloud APIs using the [gcloud CLI](https://cl
 gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com
 ```
 
-### Initialize the environment
+## Initialize the environment
 In Cloud Shell, set the default Compute Engine zone to the zone where you are going to create your GKE cluster.
 ```shell
 export PROJECT=$(gcloud info --format='value(config.project)')
@@ -66,7 +66,7 @@ export CLIENT_PER_GPU=<the maximum number of containers that will share each phy
 export BUILD_REGIST=<your desired Artifacts repository name>
 ```
 
-### Create GKE Cluster
+## Create GKE Cluster
 The below command creates a GKE standard cluster with [NVIDIA T4](https://www.nvidia.com/en-us/data-center/tesla-t4/) GPU. GKE standard clusters support all [GPU  types](https://cloud.google.com/compute/docs/gpus) that are supported by Compute Engine, therefore you can adjust the configuration and choose the appropriate GPU type based on the resource needs of your workload. We will also enable the [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for saving and sharing models and output files. Furthermore, We will also utilise the [GPU time-sharing](https://cloud.google.com/kubernetes-engine/docs/how-to/timesharing-gpus#enable-cluster) feature in GKE to let you more efficiently use your attached GPUs and save running costs.
 
 In our example, we will use a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod.
@@ -110,7 +110,7 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --enable-vertical-pod-autoscaling --enable-shielded-nodes
 ```
 
-### Create NAT and Cloud Router (Optional if your cluster is not private)
+## Create NAT and Cloud Router (Optional if your cluster is not private)
 ```shell
 # create cloud router
 gcloud compute routers create nat-router --network ${VPC_NETWORK} --region ${REGION}
@@ -128,13 +128,13 @@ gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
 gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} ---zone ${ZONE}
 ```
 
-### Install NVIDIA GPU device drivers
+## Install NVIDIA GPU device drivers
 After creating a GKE cluster with GPU, you need to install NVIDIA's device drivers on the nodes. Google provides a DaemonSet that you can apply to install the drivers. To deploy the installation [DaemonSet](https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml) and install the default GPU driver version, run the following command:
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
 ```
 
-### Create Cloud Artifacts as Docker Repo
+## Create Cloud Artifacts as Docker Repo
 ```
 BUILD_REGIST=<replace this with your preferred Artifacts repo name>
 
@@ -143,7 +143,7 @@ gcloud artifacts repositories create ${BUILD_REGIST} --repository-format=docker 
 
 ```
 
-### Build Stable Diffusion Image
+## Build Stable Diffusion Image
 Build image with provided Dockerfile, push to repo in Cloud Artifacts \
 Please note I have prepared two individual Dockerfile for inference and training, for inference, we don't include dreambooth extension for training.
 
@@ -160,7 +160,7 @@ gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=${REG
 
 ```
 
-### Create a Filestore instance
+## Create a Filestore instance
 Use the below commands to create a Filestore instance to store model outputs and training data.
 
 **NOTE: models/Stable-Diffusion/ folder is not empty. Mounting the Filestore file share directly will lose some folders and introduce error. One way to avoid this is to mount the Filestore file share, copy the folders from repo's models/Stable-Diffusion/ before being used by pods.**
@@ -173,7 +173,7 @@ FILESHARE_NAME=<replace with filestore share name>
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
 ```
 
-### Configure Cluster Autoscaling
+## Configure Cluster Autoscaling
 Enable autoscaling for your node pool to automatically resize the number of nodes in your node pool, based on the demands of your workloads. When the horizonal pod autocale feature scale up the pod replica size, it will trigger the node pool to scale out to provide required GPU resource. 
 
 ```shell
@@ -184,7 +184,7 @@ gcloud container clusters update ${GKE_CLUSTER_NAME} --enable-autoscaling --node
 gcloud container clusters update ${GKE_CLUSTER_NAME} --enable-autoscaling --node-pool=default-pool --min-nodes=0 --max-nodes=5 ---zone ${ZONE}
 ```
 
-### Enable Horizonal Pod autoscaling(HPA)
+## Enable Horizonal Pod autoscaling(HPA)
 The [Horizontal Pod Autoscaler](https://cloud.google.com/kubernetes-engine/docs/concepts/horizontalpodautoscaler) changes the shape of your Kubernetes workload by automatically increasing or decreasing the number of Pods in response to the workload's CPU or memory consumption, or in response to custom metrics reported from within Kubernetes or external metrics from sources outside of your cluster.
 Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
 

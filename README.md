@@ -1,6 +1,6 @@
 # Stable Diffusion on Google Cloud Quick Start Guide
 
-This guide provides you simple steps to deploy a Stable Diffusion solution in your Google Cloud Project, utilising Google Cloud's products and open source solutions.
+This guide provides you steps to deploy a Stable Diffusion solution in your Google Cloud Project, specifically on a Google Kubernetes Engine Cluster, utilising Google Cloud's products and open source solutions.
 
 | Folder                             | Description                                                                                                                                                                                                                                                                                   |
 |------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -9,7 +9,7 @@ This guide provides you simple steps to deploy a Stable Diffusion solution in yo
 | [Training](./Training)             | Contains the code for training DreamBooth on Vertex AI                                                                              | 
 
 ## Introduction
-   This project uses the open source [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) as the user interface. Customer can build and deploy Stable Diffusion model into container. This project uses Cloud Build to help you quickly build a docker image with your Stable Diffusion model, then you can create a deployment based on the docker image. 
+   This project uses the popular AUTOMATIC1111 web interface [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC11111/stable-diffusion-webui) as the user interface that can be accessed from anywhere at any time. You build and deploy Stable Diffusion model into a Kubernetes cluster; use Cloud Build to quickly build a docker image with your Stable Diffusion models and extensions, then create a deployment based on the docker image created. 
 
    Projects and products utilised include:
 *   [GKE](https://cloud.google.com/kubernetes-engine) for hosting Stable Diffusion and attaching GPU hardware to nodes in your Kubernetes cluster.

@@ -2,10 +2,11 @@
 
 This guide provides you simple steps to deploy a Stable Diffusion solution in your Google Cloud Project, utilising Google Cloud's products and open source solutions.
 
-* [Introduction](#Introduction)
-* [How-To-Manual-provision-infra](#How-To-Manual-provision-infra)
-* [How-To-terraform-provision-infra](./terraform-provision-infra/README.md)
-* [How-To-build-images-use-cloudbuild](./terraform-provision-infra/README.md)
+| Folder                             | Description                                                                                                                                                                                                                                                                                   |
+|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Stable-Diffusion-UI-Novel](./Stable-Diffusion-UI-Novel) | This contains all the YAML files and Dockerfiles for deploying Stable Diffusion using CLI. |
+| [terraform-provision-infra](./terraform-provision-infra) | This contains all the Terraform scripts and resources to create the infrastructure that the project relies on. 
+| [Training](./Training)             | Contains the code for training DreamBooth on Vertex AI                                                                              | 
 
 ## Introduction
    This project uses the open source [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) as the user interface. Customer can build and deploy Stable Diffusion model into container. This project uses Cloud Build to help you quickly build a docker image with your Stable Diffusion model, then you can create a deployment based on the docker image. 
@@ -145,7 +146,7 @@ gcloud artifacts repositories create ${BUILD_REGIST} --repository-format=docker 
 
 ## Build Stable Diffusion Image
 Build image with provided Dockerfile, push to repo in Cloud Artifacts \
-Please note I have prepared two individual Dockerfile for inference and training, for inference, we don't include dreambooth extension for training.
+Please note I have prepared two seperate Dockerfiles for inference and training, for inference, we don't include dreambooth extension for training.
 
 ```shell
 cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel/docker_inference

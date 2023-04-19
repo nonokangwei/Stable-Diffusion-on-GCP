@@ -64,7 +64,6 @@ export ZONE=<the desired zone for your node pool, such as us-central1-a. The zon
 export VPC_NETWORK=<the name of your VPC network>
 export VPC_SUBNETWORK=<the name of your subnetwork>
 export CLIENT_PER_GPU=<the maximum number of containers that will share each physical GPU, valid number is 2 or 3>
-export BUILD_REGIST=<your desired Artifacts repository name>
 ```
 
 ## Create GKE Cluster

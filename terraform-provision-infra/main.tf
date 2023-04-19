@@ -11,7 +11,7 @@ terraform {
   }
 }
 locals {
-  project_id    = "star-ai-poc"
+  project_id    = "ci-tf-samples-0-bcc3"
   region        = "us-central1"
   location      = "us-central1-f"
   gke_num_nodes = 1
@@ -129,6 +129,7 @@ resource "google_container_cluster" "gke" {
   release_channel {
     channel = "STABLE"
   }
+
   maintenance_policy {
     daily_maintenance_window {
       start_time = "03:00"
@@ -153,6 +154,13 @@ resource "google_container_cluster" "gke" {
 
     dns_cache_config {
       enabled = true
+    }
+  }
+  enable_shielded_nodes = true
+  node_config {
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
     }
   }
 }
@@ -199,6 +207,10 @@ resource "google_container_node_pool" "gpu_nodes" {
     "${local.project_id}-gke"]
     metadata = {
       disable-legacy-endpoints = "true"
+    }
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
     }
   }
 }

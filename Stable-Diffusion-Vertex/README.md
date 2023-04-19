@@ -175,27 +175,27 @@ The managed instance supports adding a custom image as kernel, that you can run 
 
 The executor lets you submit a notebook (ipynb) file from Workbech, to run on Vertex AI custom training. So it's convenient for codes and parameters fine-tuning, and computing cost saving.
 
-### Creare user-managed instance
+### Creare managed instance
 
-Create a user-managed instance in Vertex AI Workbench. If you want to load custom image, make sure to add this custom image when provisioning the instance. You can just use the docker image built in custom training job. It's a uniform image, covering all scenarios.
+Create a managed instance in Vertex AI Workbench. If you want to load custom image, make sure to add this custom image when provisioning the instance. You can just use the docker image built in custom training job. It's a uniform image, covering all scenarios.
 
 ![Custom Image](./images/workbench_custom_image.png)
-![Custom Image in Workbench](./images/workbench_image_tatus.png)
+![Custom Image in Workbench](./images/workbench_image_status.png)
 
 ### Fine-tune stable diffusion model in Vertex AI Workbench
 
 Option one is you just fine tune the model in page of notebook. The environment is provided by the custom image, and a GPU needs to be provisioned for training.
 
-You can reference the notebook of [kohya-lora.ipynb](./Workbench/kohya-lora.ipynb). And note that docker image only provides a hosting environment, so the code needs to be downloaded again, and training dataset needs to be uploaded to notebook.
+You can reference the notebook of [kohya-lora.ipynb](./Workbench/kohya-lora.ipynb). And note that docker image only provides a hosting environment, so the code needs to be downloaded again, and training dataset needs to be uploaded to notebook. And after training, the model is saved in notebook. You can upload the models to Cloud Storage, and transfer the models to Filestore using a custom job, just as the sample notebook shows.
 
 ### Fine-tune stable diffusion model in Vertex AI Workbench Executor
 
 Option two is you submit the training task from notebook to custom training service via Executor. There are several advantages.
 1. You can submit multiple tasks at the same time, no interrupting the notebook environment and occupying notebook's resources. 
 2. The custom training task will directly run the code in Jupyter notebook with no need of refining to python script. 
-3. Connect to GCS and File Store for data and files reading and writing just like local folder. No need to upload data to notebook, or refine the code to adjust to GCS interface.
+3. Connect to GCS  for data and files reading and writing just like local folder. No need to upload data to notebook, or refine the code to adjust to GCS interface.
 
-So the executor process is as below.
+So the executor process is as below. You can also reference the sample ntoebook [diffusers_nbexecutor.ipynb](./Workbench/diffusers_nbexecutor.ipynb)
 
 1. Upload training images to Cloud Storage
 
@@ -213,7 +213,7 @@ After clicking Submit, it will start a custom training job, run the notebook in 
 
 5. Check the outputs in Cloud Storage
 
-The job status can be monitored in Workbench executor tab.
+The job status can be monitored in Workbench executor tab. Note that in this mode, we cannot configure NFS mounts.
 
 ![Vertex AI Workbench executor status](images/workbench_status.png)
 

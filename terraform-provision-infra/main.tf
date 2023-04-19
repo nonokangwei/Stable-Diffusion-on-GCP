@@ -11,7 +11,7 @@ terraform {
   }
 }
 locals {
-  project_id    = "ci-tf-samples-0-bcc3"
+  project_id    = "star-ai-poc"
   region        = "us-central1"
   location      = "us-central1-f"
   gke_num_nodes = 1
@@ -233,7 +233,7 @@ resource "google_filestore_instance" "instance" {
 #Artifact Registry
 resource "google_artifact_registry_repository" "sd_repo" {
   location      = local.region
-  repository_id = "sd-repository"
+  repository_id = "sd-repository-${random_id.tf_subfix.hex}"
   description   = "stable diffusion repository"
   format        = "DOCKER"
 }

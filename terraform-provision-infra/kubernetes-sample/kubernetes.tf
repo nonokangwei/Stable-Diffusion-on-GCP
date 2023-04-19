@@ -103,6 +103,7 @@ resource "null_resource" "node_gpu_driver" {
     when    = destroy
     command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
   }
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }
 
 resource "null_resource" "custom_metrics_stackdriver_adapter" {
@@ -113,6 +114,7 @@ resource "null_resource" "custom_metrics_stackdriver_adapter" {
     when    = destroy
     command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
   }
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }
 
 resource "null_resource" "sample_sd15_deployment" {
@@ -123,4 +125,5 @@ resource "null_resource" "sample_sd15_deployment" {
     when    = destroy
     command = "kubectl delete -f deployment_sd15.yaml"
   }
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }

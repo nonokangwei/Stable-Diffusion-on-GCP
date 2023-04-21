@@ -39,5 +39,5 @@ RUN pip install google-cloud-storage
 COPY train.py /root/train.py
 
 # Sets up the entry point to invoke the trainer.
-#ENTRYPOINT ["python3", "-m", "train"]
+ENTRYPOINT ["python3", "-m", "train"]
 

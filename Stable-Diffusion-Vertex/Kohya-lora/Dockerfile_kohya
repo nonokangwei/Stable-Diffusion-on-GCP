@@ -44,4 +44,4 @@ RUN pip install torch==2.0.0+cu118 torchvision==0.15.1+cu118 --extra-index-url h
 COPY train_kohya.py /root/train_kohya.py
 
 # Sets up the entry point to invoke the trainer.
-#ENTRYPOINT ["python3", "-m", "train_kohya"]
+ENTRYPOINT ["python3", "-m", "train_kohya"]

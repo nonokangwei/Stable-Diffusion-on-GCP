@@ -21,7 +21,7 @@ This guide provides you steps to deploy a Stable Diffusion solution in your Goog
 *   [Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui): A browser interface for Stable Diffusion.
 
 ## Architecture
-![Architecture](Stable-Diffusion-GKE/assets/sd_gke_01.drawio.png)
+![Architecture](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
 
 * Architecture GKE + GPU + spot + Vertex AI custom training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models

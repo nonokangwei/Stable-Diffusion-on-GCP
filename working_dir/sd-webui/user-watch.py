@@ -18,16 +18,17 @@ if r.encoding is None:
     r.encoding = 'utf-8'
 
 for line in r.iter_lines(decode_unicode=True):
-    if line:
+    if line: 
         response = json.loads(line)
         if "user" in response['result']['object_meta']['labels']:
             userid = response['result']['object_meta']['labels']['user']
             print(userid)
             if os.path.isdir('/stable-diffusion-webui/outputs'):
                 shutil.rmtree('/stable-diffusion-webui/outputs')
+            if os.path.isdir('/stable-diffusion-webui/models'):
+                shutil.rmtree('/stable-diffusion-webui/models')
 
             Path(os.path.join(mount_dir, userid, 'outputs')).mkdir(parents=True, exist_ok=True)
-            Path(os.path.join(mount_dir, userid, 'inputs')).mkdir(parents=True, exist_ok=True)
             Path(os.path.join(mount_dir, userid, 'inputs')).mkdir(parents=True, exist_ok=True)
 
             os.symlink(os.path.join(mount_dir, userid, 'outputs'), '/stable-diffusion-webui/outputs', target_is_directory = True)

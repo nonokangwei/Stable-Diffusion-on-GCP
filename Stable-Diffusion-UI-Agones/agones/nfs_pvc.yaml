@@ -1,0 +1,12 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: vol1
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: ""
+  volumeName: filestore-nfs-pv
+  resources:
+    requests:
+      storage: 1Ti

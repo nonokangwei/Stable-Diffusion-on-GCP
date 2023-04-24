@@ -42,7 +42,7 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:slim_agones
+            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui@sha256:60c8f1fb92cd8d6ad4966a2064bcd34275939c0d922cb5f6ced9ba018a425d81
             command: ["/bin/sh", "start.sh"]
             volumeMounts:
             - name: stable-diffusion-storage

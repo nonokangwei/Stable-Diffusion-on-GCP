@@ -43,4 +43,4 @@ COPY user-watch.py /stable-diffusion-webui/user-watch.py
 COPY start.sh /stable-diffusion-webui/start.sh
 
 WORKDIR /stable-diffusion-webui/
-CMD ["python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access"]
+CMD ["python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access", "--no-gradio-queue"]

@@ -1,4 +1,4 @@
-# Stable-Diffusion on Google Cloud Quick Start Guide
+# Stable-Diffusion on Agones Implementation Guide
 
 This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. For convinent multi-user stable-diffusion runtime management, using the [Agones](https://agones.dev/site/) as the runtime management operator, each isolated stable-diffusion runtime is hosted in an isolated POD, each authorized user will be allocated a dedicated POD. User can just follow the step have your stable diffusion model running.
 
@@ -44,6 +44,10 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
 
 gcloud beta container --project ${PROJECT_ID} node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
 ```
+**NOTE: If you are creating a private GKE cluster, setup a firewall rule to allow**
+1. all internal CIDR(10.0.0.0/8, 172.16.0.0/16, 192.168.0.0/24). Specifically, CIDR range for pod, but using all internal CIDR will be easier.
+2. for TCP port 443/8080/8081 & 7000-8000 and UDP port 7000-8000
+3. for source tag as gke node tag, e.g. gke-gke-01-7267dc32-node, you can find it in your VM console.
 
 ### Get credentials of GKE cluster
 ```
@@ -187,3 +191,31 @@ Give the authorized users required priviledge to access the service. [Guide](htt
 
 
 ### FAQ
+#### How could I troubleshooting if I get 502?
+It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually 3mins), then refresh the page.
+If it is much longer then expected, then
+
+1. Check stdout/stderr from pod
+To see if webui has been launched successfully
+```
+kubectl logs -f pod/sd-agones-fleet-xxxxx-xxxxx -c stable-diffusion-webui
+```
+2. Check stderr from nginx+lua deployment
+```
+kubectl logs -f deployment.apps/stable-diffusion-nginx-deployment
+```
+3. Check redis keys
+Clear all keys from redis before reusing it for new deployment
+```
+redis-cli -h ${redis_host}
+keys *
+del *
+```
+4. Check cloud scheduler & cloud function, the last run status should be "OK", otherwise check the logs.
+
+#### Why there is a simple-game-server container in the fleet?
+This is an example game server from agones, we leverage it as a game server sdk to interact with agones control plane without additional coding and change to webui.
+The nginx+lua will call simple-game-server to indirectly interact with agones for resource allication and release.
+
+#### How can I upload file to the pod?
+Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.

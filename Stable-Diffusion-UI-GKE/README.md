@@ -2,7 +2,11 @@
 
 This guide provides you steps to deploy a Stable Diffusion WebUI in your Google Cloud Project on top of Google Kubernetes Engine.
 
-![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
+* [Introduction](#Introduction)
+* [How-To](#how-to)
+
+## Introduction
+![GKE](./images/sd-webui-gke.png)
 * Recommended for serving as a Saas platform
 * Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
@@ -11,7 +15,7 @@ This guide provides you steps to deploy a Stable Diffusion WebUI in your Google 
 * Supplementary Dreambooth/Lora Training on Vertex AI
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
-## Run in Your Google Cloud Project
+## How To
 
 **Warning**
 This solution in its default state creates a Kubernetes cluster with one GPU. Running it for an extended amount of time may incur significant costs.

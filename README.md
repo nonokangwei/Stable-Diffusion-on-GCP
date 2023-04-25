@@ -86,3 +86,5 @@ Your folder structure could probably look like this in your Filestore file share
 |       |-- 00001-631481262.png
 |       |-- 00002-1301840995.png
 ```
+#### How can I upload file?
+Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.

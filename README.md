@@ -88,3 +88,14 @@ Your folder structure could probably look like this in your Filestore file share
 ```
 #### How can I upload file?
 Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.
+
+#### How can scale to zero after work?
+HPA & Agones only allow at least one replica, to do this you will have to manually scale to 0 or delete the resource.
+e.g. For GKE,
+```
+kubectl scale --replicas=1 deployment stable-diffusion-train-deployment
+```
+for Agones,
+```
+kubectl delete fleet sd-agones-fleet
+```

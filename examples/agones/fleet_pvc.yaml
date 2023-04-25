@@ -42,14 +42,15 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui@sha256:60c8f1fb92cd8d6ad4966a2064bcd34275939c0d922cb5f6ced9ba018a425d81
+            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.6
+            imagePullPolicy: Always
             command: ["/bin/sh", "start.sh"]
             volumeMounts:
             - name: stable-diffusion-storage
               mountPath: /sd_dir
             resources:
               limits:
-                nvidia.com/gpu: 1
+                nvidia.com/gpu: "1"
           volumes:
             - name: stable-diffusion-storage
               persistentVolumeClaim:

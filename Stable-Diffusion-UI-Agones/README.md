@@ -1,4 +1,4 @@
-# Stable-Diffusion on Google Cloud Quick Start Guide
+# Stable-Diffusion on Agones Implementation Guide
 
 This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. For convinent multi-user stable-diffusion runtime management, using the [Agones](https://agones.dev/site/) as the runtime management operator, each isolated stable-diffusion runtime is hosted in an isolated POD, each authorized user will be allocated a dedicated POD. User can just follow the step have your stable diffusion model running.
 
@@ -187,3 +187,31 @@ Give the authorized users required priviledge to access the service. [Guide](htt
 
 
 ### FAQ
+#### How could I troubleshooting if I get 502?
+It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually 3mins), then refresh the page.
+If it is much longer then expected, then
+
+1. Check stdout/stderr from pod
+To see if webui has been launched successfully
+```
+kubectl logs -f pod/sd-agones-fleet-xxxxx-xxxxx -c stable-diffusion-webui
+```
+2. Check stderr from nginx+lua deployment
+```
+kubectl logs -f deployment.apps/stable-diffusion-nginx-deployment
+```
+3. Check redis keys
+Clear all keys from redis before reusing it for new deployment
+```
+redis-cli -h ${redis_host}
+keys *
+del *
+```
+4. Check cloud scheduler & cloud function, the last run status should be "OK", otherwise check the logs.
+
+#### Why there is a simple-game-server container in the fleet?
+This is an example game server from agones, we leverage it as a game server sdk to interact with agones control plane without additional coding and change to webui.
+The nginx+lua will call simple-game-server to indirectly interact with agones for resource allication and release.
+
+#### How can I upload file to the pod?
+Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.

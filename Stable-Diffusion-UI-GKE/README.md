@@ -1,40 +1,20 @@
-# Stable Diffusion on Google Cloud Quick Start Guide
+# Stable Diffusion WebUI on GKE implementation guide
 
-This guide provides you steps to deploy a Stable Diffusion solution in your Google Cloud Project, specifically on a Google Kubernetes Engine Cluster, utilising Google Cloud's products and open source solutions.
+This guide provides you steps to deploy a Stable Diffusion WebUI in your Google Cloud Project on top of Google Kubernetes Engine.
 
-| Folder                             | Description                                                                                                                                                                                                                                                                                   |
-|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Stable-Diffusion-UI-Novel](./Stable-Diffusion-UI-Novel) | This contains all the YAML files and Dockerfiles for deploying Stable Diffusion using CLI. |
-| [terraform-provision-infra](./terraform-provision-infra) | This contains all the Terraform scripts and resources to create the infrastructure that the project relies on. 
-| [Training](./Training)             | Contains the code for training DreamBooth on Vertex AI                                                                              | 
-
-## Introduction
-   This project uses the popular AUTOMATIC1111 web interface [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC11111/stable-diffusion-webui) as the user interface that can be accessed from anywhere at any time. You build and deploy Stable Diffusion model into a Kubernetes cluster; use Cloud Build to build a docker image with your Stable Diffusion models and extensions, then create a deployment based on the docker image created. 
-
-   Projects and products utilised include:
-*   [GKE](https://cloud.google.com/kubernetes-engine) for hosting Stable Diffusion and attaching GPU hardware to nodes in your Kubernetes cluster.
-*   [Filestore](https://cloud.google.com/filestore) for saving models and output files.
-*   [Vertex AI](https://cloud.google.com/vertex-ai) for training and fine-tuning the model.
-*   [Cloud Build](https://cloud.google.com/build) for building images and Continuous Integration.
-*   [GKE](https://cloud.google.com/kubernetes-engine) Standard clusters running [Agones](https://agones.dev/) for isolating runtime for different users and scaling.
-*   [Stable Diffusion](https://huggingface.co/runwayml/stable-diffusion-v1-5) for generating images from text.
-*   [Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui): A browser interface for Stable Diffusion.
-
-## Architecture
-![Architecture](./assets/sd_gke_01.drawio.png)
-
-* Architecture GKE + GPU + spot + Vertex AI custom training
+![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
+* Recommended for serving as a Saas platform
+* Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
-* Scaling with HPA with GPU metrics, supports GPU time sharing
-* Inference and training on WebUI
-* Dreambooth Training on Vertex AI
-* Optimized for vram saving, Inference+Training can be done in a T4 GPU
+* Scaling with HPA with GPU metrics
+* Inference on WebUI, but suitable for training
+* Supplementary Dreambooth/Lora Training on Vertex AI
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
 ## Run in Your Google Cloud Project
 
-> **Warning**
-> This solution in its default state creates a Kubernetes cluster with one GPU. Running it for an extended amount of time may incur significant costs.
+**Warning**
+This solution in its default state creates a Kubernetes cluster with one GPU. Running it for an extended amount of time may incur significant costs.
 
 ### Before you begin
 To deploy this solution, you will need the following applications installed on your workstation. If you use Cloud Shell to run these steps, those applications are already installed for you:
@@ -200,41 +180,3 @@ Deploy horizonal pod autoscaler policy on the Stable Diffusion deployment
 kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hpa.yaml
 ```
 **Note: If the GPU time-sharing feature is enabled in GKE clsuter, please use the hpa-timeshare.yaml, make sure to substitude the GKE_CLUSTER_NAME in the YAML file.**
-
-## Other notes
-### About multi-users/sessions
-AUTOMATIC1111's Stable Diffusion WebUI does not support multi users/sessions at this moment, you can refer to https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/7970. To support multi-users, we create one deployment for each model.
-
-### About file structure
-Instead of building images for each model, we use one image with shared storage from Filestore and properly orchestrate for our files and folders.
-Please refer to the deployment_*.yaml for reference.
-
-Your folder structure could probably look like this in your Filestore file share:
-```
-/models/Stable-diffusion # <--- This is where Stable Diffusion WebUI looking for models
-|-- nai
-|   |-- nai.ckpt
-|   |-- nai.vae.pt
-|   `-- nai.yaml
-|-- sd15
-|   `-- v1-5-pruned-emaonly.safetensors
-
-/inputs/ # <--- for training images, only use it when running training job from UI(sd_dreammbooth_extension)
-|-- alvan-nee-cropped
-|   |-- alvan-nee-9M0tSjb-cpA-unsplash_cropped.jpeg
-|   |-- alvan-nee-Id1DBHv4fbg-unsplash_cropped.jpeg
-|   |-- alvan-nee-bQaAJCbNq3g-unsplash_cropped.jpeg
-|   |-- alvan-nee-brFsZ7qszSY-unsplash_cropped.jpeg
-|   `-- alvan-nee-eoqnr8ikwFE-unsplash_cropped.jpeg
-
-/outputs/ # <--- for generated images
-|-- img2img-grids
-|   `-- 2023-03-14
-|       |-- grid-0000.png
-|       `-- grid-0001.png
-|-- img2img-images
-|   `-- 2023-03-14
-|       |-- 00000-425382929.png
-|       |-- 00001-631481262.png
-|       |-- 00002-1301840995.png
-```

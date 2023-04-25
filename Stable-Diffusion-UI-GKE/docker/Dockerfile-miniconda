@@ -22,7 +22,7 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
 
 RUN echo 'conda activate sd-webui' >> /root/.bashrc
 
-RUN set -ex && . /root/.bashrc \
+RUN . /root/.bashrc \
     && python3 -m pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 \
     && python3 -m pip install git+https://github.com/TencentARC/GFPGAN.git@8d2447a2d918f8eba5a4a01463fd48e45126a379 --prefer-binary \
     && python3 -m pip install git+https://github.com/openai/CLIP.git@d50d76daa670286dd6cacf3bcd80b5e4823fc8e1 --prefer-binary \
@@ -41,8 +41,7 @@ RUN set -ex && . /root/.bashrc \
     && git clone https://github.com/salesforce/BLIP.git /stable-diffusion-webui/repositories/BLIP \
     && git -C /stable-diffusion-webui/repositories/BLIP checkout 48211a1594f1321b00f14c9f7a5b4813144b2fb9 \
     && python3 -m pip install -r /stable-diffusion-webui/repositories/CodeFormer/requirements.txt --prefer-binary \
-    && python3 -m pip install -r /stable-diffusion-webui/requirements_versions.txt --prefer-binary \
-    && python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
+    && python3 -m pip install -r /stable-diffusion-webui/requirements_versions.txt --prefer-binary
 
 RUN set -ex && cd stable-diffusion-webui \
     && git clone https://gitcode.net/ranting8323/sd-webui-additional-networks.git extensions/sd-webui-additional-networks \
@@ -53,6 +52,9 @@ RUN set -ex && cd stable-diffusion-webui \
     && git clone https://gitcode.net/overbill1683/stable-diffusion-webui-localization-zh_Hans.git extensions/stable-diffusion-webui-localization-zh_Hans \
     && git clone https://gitcode.net/ranting8323/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
     && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet
+
+RUN . /root/.bashrc \
+    && python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
 
 EXPOSE 7860
 

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stable-diffusion-nginx-deployment
+  labels:
+    app: stable-diffusion-nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stable-diffusion-nginx
+  template:
+    metadata:
+      labels:
+        app: stable-diffusion-nginx
+    spec:
+      containers:
+      - name: stable-diffusion-nginx
+        image: us-central1-docker.pkg.dev/<PROJECT_ID>/<BUILD_REGIST>/sd-nginx:0.1
+        ports:
+          - containerPort: 8080
+      nodeSelector:
+        cloud.google.com/gke-nodepool: default-pool

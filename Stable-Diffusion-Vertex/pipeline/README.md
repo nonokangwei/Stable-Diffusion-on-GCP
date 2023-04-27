@@ -32,6 +32,6 @@ By running the pipeline.py file, the pipeline script will be compiled automatica
 
 Pipeline job status can be displayed by visiting the GCP console, more detailed logs can be found by clicking the icon of each step.
 
-
+![Vertex-AI-Screenshot](./images/Vertex-AI-Screenshot.png)
 
 

@@ -12,8 +12,11 @@ Whether to choose the one-stage or two-stage pipeline can be configured by setti
 It’s very straightforward to start the Vertex AI pipeline, just following the following steps .
 
 1. Clone code repository to local environment, we suggest using Cloud Shell, if you chose using a different terminal, make sure google cloud sdk is well installed and configured.
+
 `cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-Vertex/pipeline`
+
 2. Install Python dependencies
+
 `pip install requirements.txt`
 3. Configure pipeline configuration settings by editing pipeline_conf.yaml
 `vi pipeline_conf.yaml`

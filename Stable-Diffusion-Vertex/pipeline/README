@@ -1,4 +1,5 @@
-#Stable Diffusion Model Fine-tuning with Vertex AI Quick Start
+# Stable Diffusion Model Fine-tuning with Vertex AI Quick Start
+
 This guide gives a simple example of how to orchestrate an end to end ML workflow by using Vertex AI pipeline.
 
 As the pictures shows, in this example we can use a one-stage Vertex AI pipeline to train a stable diffusion Lora model on the Kohya environment, and sync the Lora model files automatically to GCS or Cloud Filestore. In this one-stage method, we need to manually push a Kohya Docker image to the specified Docker registry.

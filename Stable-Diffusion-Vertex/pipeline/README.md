@@ -20,6 +20,17 @@ cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-Vertex/pipeline`
 pip install requirements.txt
 ```
 3. Configure pipeline configuration settings by editing pipeline_conf.yaml
-`vi pipeline_conf.yaml`
+```
+vi pipeline_conf.yaml
+```
 4. Run pipeline.py to start the vertex AI training job.
-`python3 pipeline.py`
+```
+python3 pipeline.py
+```
+By running the pipeline.py file, the pipeline script will be compiled automatically and the pipeline job will be started in the background. The pipeline job duration will depend on image number in the dataset and model hyperparameter settings such as batch size and epochs etc.
+
+Pipeline job status can be displayed by visiting the GCP console, more detailed logs can be found by clicking the icon of each step.
+
+
+
+

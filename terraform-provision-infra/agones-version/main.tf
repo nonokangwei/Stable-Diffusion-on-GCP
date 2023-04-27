@@ -15,8 +15,6 @@ locals {
   region          = "us-central1"
   location        = "us-central1-f"
   gke_num_nodes   = 1
-  iap_brand_exist = true
-  iap_brand       = "projects/423197754582/brands/423197754582"
 }
 provider "google" {
   project = local.project_id
@@ -51,38 +49,6 @@ resource "google_project_service" "gcp_services" {
   disable_dependent_services = false
   disable_on_destroy         = false
 }
-
-#resource "google_project_service" "artifactregistry_svc" {
-#  service            = "artifactregistry.googleapis.com"
-#  disable_on_destroy = false
-#}
-#
-#resource "google_project_service" "cloudbuild_svc" {
-#  service            = "cloudbuild.googleapis.com"
-#  disable_on_destroy = false
-#}
-#
-#resource "google_project_service" "compute_svc" {
-#  service            = "compute.googleapis.com"
-#  disable_on_destroy = false
-#}
-#
-#resource "google_project_service" "container_svc" {
-#  service            = "container.googleapis.com"
-#  disable_on_destroy = false
-#}
-#resource "google_project_service" "filestore_svc" {
-#  service            = "file.googleapis.com"
-#  disable_on_destroy = false
-#}
-#resource "google_project_service" "networkmanagement_svc" {
-#  service            = "networkmanagement.googleapis.com"
-#  disable_on_destroy = false
-#}
-#resource "google_project_service" "memcache_svc" {
-#  service            = "memcache.googleapis.com"
-#  disable_on_destroy = false
-#}
 
 # VPC
 resource "google_compute_network" "vpc" {
@@ -412,7 +378,7 @@ output "region" {
 }
 output "gke_location" {
   value       = local.location
-  description = "GCloud Region"
+  description = "gke location"
 }
 output "project_id" {
   value       = local.project_id
@@ -438,7 +404,7 @@ output "gcloud_artifacts_repositories_auth_cmd" {
 }
 output "cloud_build_image_cmd_sample" {
   value       = "gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=${local.region} -t ${local.region}-docker.pkg.dev/${local.project_id}/${google_artifact_registry_repository.sd_repo.name}/sd-webui:TAG"
-  description = "redis host"
+  description = "cloud build sample command"
 }
 output "google_redis_instance_host" {
   value       = google_redis_instance.cache.host
@@ -446,15 +412,19 @@ output "google_redis_instance_host" {
 }
 output "gcs_function_archive_bucket" {
   value       = google_storage_bucket.bucket.name
-  description = "redis host"
+  description = "cloud function source archive bucket"
 }
 output "gcs_function_archive_object" {
   value       = google_storage_bucket_object.archive.name
-  description = "redis host"
+  description = "cloud function source archive object name"
 }
 output "webui_address_name" {
   value       = google_compute_global_address.webui_addr.name
-  description = "redis host"
+  description = "webui global static ip name"
+}
+output "webui_address" {
+  value       = google_compute_global_address.webui_addr.address
+  description = "webui global static ip address"
 }
 output "redis_private_domain" {
   value       = google_dns_record_set.redis_a.name

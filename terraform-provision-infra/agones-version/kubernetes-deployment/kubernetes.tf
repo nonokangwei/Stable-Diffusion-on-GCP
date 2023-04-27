@@ -8,9 +8,9 @@ data "terraform_remote_state" "gke" {
 }
 
 locals {
-  oauth_client_id  = "423197754582-2n0jamgt5ushkpkgr435ut7o329n3jh2.apps.googleusercontent.com"
-  oauth_client_key = "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"
-  sd_webui_domain = "sdwebui.skiski.cloud"
+  oauth_client_id  = "OAUTH_CLIENT_ID"
+  oauth_client_secret = "OAUTH_CLIENT_SECRET"
+  sd_webui_domain = "your_owned_domain_or_subdomain"
 }
 
 data "google_client_config" "default" {}
@@ -84,7 +84,7 @@ resource "kubernetes_secret" "iap_client_secret" {
   }
   data = {
     client_id     = local.oauth_client_id
-    client_secret = local.oauth_client_key
+    client_secret = local.oauth_client_secret
   }
 }
 resource "kubernetes_namespace" "agones_namespace" {

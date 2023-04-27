@@ -59,10 +59,11 @@ Main step as follow
 1. Configuring the OAuth consent screen
 2. Creating OAuth credentials (**IMPORTANT** *please make note of client id and secret**)
 3. Update OAuth client Authorized redirect URIs
-3. Creating A recored point to webui_address in DNS provider (sdwebui.example.com - > xxx.xxx.xxx.xxx)
+4. Creating A recored point to webui_address in DNS provider (sdwebui.example.com - > xxx.xxx.xxx.xxx)
+5. (After kubernetes resource has been created)Grant IAP-secured Web App User permission for user
 
 
-### 05 Replace OAuth Client id and secret and your owned domain
+### 05 Replace OAuth Client id and secret and your owned domain in  kubernetes.tf file
 
 ```bash
 locals {
@@ -88,6 +89,10 @@ terraform apply -auto-approve
 # destroy Infrastructure
 terraform destroy -auto-approve
 ```
+
+### 07 Grant Permission and access web ui
+* Back to Step 04.5 grant IAP-secured Web App User permission 
+* Access webui via your domain or subdomain
 
 
 ## No Agones Version

@@ -102,6 +102,10 @@ resource "helm_release" "agones" {
   values = [
     file("./agones-values.yaml")
   ]
+  set {
+    name  = "agones.controller.nodeSelector"
+    value = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
+  }
 }
 resource "null_resource" "connect_regional_cluster" {
   count = data.terraform_remote_state.gke.outputs.cluster_type == "regional" ? 1 : 0
@@ -157,7 +161,7 @@ resource "null_resource" "sample_fleet" {
     when    = destroy
     command = "kubectl delete -f fleet.yaml"
   }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, helm_release.agones]
 }
 
 resource "null_resource" "sample_fleet__autoscaler" {

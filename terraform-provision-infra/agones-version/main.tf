@@ -1,17 +1,5 @@
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "4.60.1"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.4.3"
-    }
-  }
-}
 locals {
-  project_id      = "alpha0809"
+  project_id      = "PROJECT_ID"
   region          = "us-central1"
   location        = "us-central1-f"
   gke_num_nodes   = 1
@@ -38,6 +26,7 @@ variable "gcp_service_list" {
     "cloudfunctions.googleapis.com",
     "cloudscheduler.googleapis.com",
     "iap.googleapis.com",
+    "dns.googleapis.com"
   ]
 }
 
@@ -100,7 +89,7 @@ resource "google_compute_router_nat" "nat" {
 resource "google_container_cluster" "gke" {
   name                     = "tf-gen-gke-${random_id.tf_subfix.hex}"
   location                 = local.location
-  remove_default_node_pool = false
+  remove_default_node_pool = true
   enable_shielded_nodes    = true
   initial_node_count       = 1
   network                  = google_compute_network.vpc.name
@@ -143,39 +132,7 @@ resource "google_container_cluster" "gke" {
       enabled = true
     }
   }
-  cluster_autoscaling {
-    enabled = false
-    #      resource_limits {
-    #        resource_type = "cpu"
-    #        minimum       = 1
-    #        maximum       = 4
-    #      }
-  }
-
   node_config {
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/cloud-platform"
-    ]
-    preemptible  = true
-    machine_type = "custom-12-49152-ext"
-    image_type   = "COS_CONTAINERD"
-    gcfs_config {
-      enabled = true
-    }
-    guest_accelerator {
-      type  = "nvidia-tesla-t4"
-      count = 1
-      gpu_sharing_config {
-        gpu_sharing_strategy       = "TIME_SHARING"
-        max_shared_clients_per_gpu = 2
-      }
-    }
-    disk_type    = "pd-balanced"
-    disk_size_gb = 100
-    tags         = ["gpu-node", "gke-sd"]
-    metadata = {
-      disable-legacy-endpoints = "true"
-    }
     shielded_instance_config {
       enable_secure_boot          = true
       enable_integrity_monitoring = true
@@ -194,54 +151,52 @@ resource "google_compute_firewall" "agones" {
   source_ranges = ["0.0.0.0/0"]
 }
 # Separately Managed Node Pool
-#resource "google_container_node_pool" "gpu_nodes" {
-#  name     = "preemptible-gpu-pool-${random_id.tf_subfix.hex}"
-#  location = local.location
-#  cluster  = google_container_cluster.gke.name
-#  autoscaling {
-#    min_node_count = 1
-#    max_node_count = 10
-#  }
-#  node_count = local.gke_num_nodes
-#  node_config {
-#    oauth_scopes = [
-#      "https://www.googleapis.com/auth/cloud-platform"
-#    ]
-#
-#    labels = {
-#      env = local.project_id
-#    }
-#
-#    preemptible  = true
-#    machine_type = "custom-12-49152-ext"
-#    image_type   = "COS_CONTAINERD"
-#    gcfs_config {
-#      enabled = true
-#    }
-#    guest_accelerator {
-#      type  = "nvidia-tesla-t4"
-#      count = 1
-#      gpu_sharing_config {
-#        gpu_sharing_strategy       = "TIME_SHARING"
-#        max_shared_clients_per_gpu = 2
-#
-#      }
-#    }
-#    disk_type    = "pd-balanced"
-#    disk_size_gb = 100
-#
-#    tags = [
-#      "gke-node",
-#    "${local.project_id}-gke"]
-#    metadata = {
-#      disable-legacy-endpoints = "true"
-#    }
-#    shielded_instance_config {
-#      enable_secure_boot          = true
-#      enable_integrity_monitoring = true
-#    }
-#  }
-#}
+resource "google_container_node_pool" "gpu_nodepool" {
+  name     = "preemptible-gpu-pool-${random_id.tf_subfix.hex}"
+  location = local.location
+  cluster  = google_container_cluster.gke.name
+  autoscaling {
+    min_node_count = 1
+    max_node_count = 10
+  }
+  node_count = local.gke_num_nodes
+  node_config {
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+
+    labels = {
+      env = local.project_id
+    }
+
+    preemptible  = true
+    machine_type = "custom-12-49152-ext"
+    image_type   = "COS_CONTAINERD"
+    gcfs_config {
+      enabled = true
+    }
+    guest_accelerator {
+      type  = "nvidia-tesla-t4"
+      count = 1
+      gpu_sharing_config {
+        gpu_sharing_strategy       = "TIME_SHARING"
+        max_shared_clients_per_gpu = 2
+
+      }
+    }
+    disk_type    = "pd-balanced"
+    disk_size_gb = 100
+
+    tags = ["gpu-node", "gke-sd"]
+    metadata = {
+      disable-legacy-endpoints = "true"
+    }
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
+    }
+  }
+}
 # Filestore
 resource "google_filestore_instance" "instance" {
   name     = "nfs-store"
@@ -429,5 +384,9 @@ output "webui_address" {
 output "redis_private_domain" {
   value       = google_dns_record_set.redis_a.name
   description = "redis private domain"
+}
+output "gpu_nodepool_name" {
+  value       = google_container_node_pool.gpu_nodepool.name
+  description = "gpu node pool name"
 }
 

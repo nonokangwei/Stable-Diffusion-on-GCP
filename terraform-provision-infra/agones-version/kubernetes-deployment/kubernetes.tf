@@ -8,9 +8,9 @@ data "terraform_remote_state" "gke" {
 }
 
 locals {
-  oauth_client_id  = "OAUTH_CLIENT_ID"
+  oauth_client_id     = "OAUTH_CLIENT_ID"
   oauth_client_secret = "OAUTH_CLIENT_SECRET"
-  sd_webui_domain = "your_owned_domain_or_subdomain"
+  sd_webui_domain     = "your_owned_domain_or_subdomain"
 }
 
 data "google_client_config" "default" {}
@@ -103,7 +103,7 @@ resource "helm_release" "agones" {
     file("./agones-values.yaml")
   ]
   set {
-    name  = "agones.controller.nodeSelector"
+    name  = "agones.controller.nodeSelector\\.cloud\\.google\\.com/gke-nodepool"
     value = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
   }
 }

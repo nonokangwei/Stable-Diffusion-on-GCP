@@ -1,8 +1,8 @@
 locals {
-  project_id      = "PROJECT_ID"
-  region          = "us-central1"
-  location        = "us-central1-f"
-  gke_num_nodes   = 1
+  project_id    = "PROJECT_ID"
+  region        = "us-central1"
+  location      = "us-central1-f"
+  gke_num_nodes = 1
 }
 provider "google" {
   project = local.project_id
@@ -68,7 +68,7 @@ resource "google_compute_address" "address" {
 }
 
 resource "google_compute_global_address" "webui_addr" {
-  name   = "sd-webui-ingress-${random_id.tf_subfix.hex}"
+  name = "sd-webui-ingress-${random_id.tf_subfix.hex}"
 }
 
 # NAT Gateway
@@ -307,7 +307,7 @@ resource "google_dns_managed_zone" "private_zone" {
   name        = "private-zone-${random_id.tf_subfix.hex}"
   dns_name    = "private.domain."
   description = "Example private DNS zone"
-  visibility = "private"
+  visibility  = "private"
   private_visibility_config {
     networks {
       network_url = google_compute_network.vpc.id
@@ -320,7 +320,7 @@ resource "google_dns_record_set" "redis_a" {
   managed_zone = google_dns_managed_zone.private_zone.name
   type         = "A"
   ttl          = 300
-  rrdatas = [google_redis_instance.cache.host]
+  rrdatas      = [google_redis_instance.cache.host]
 }
 
 output "cluster_type" {

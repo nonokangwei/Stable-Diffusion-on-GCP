@@ -152,7 +152,7 @@ resource "google_compute_firewall" "agones" {
 }
 # Separately Managed Node Pool
 resource "google_container_node_pool" "gpu_nodepool" {
-  name     = "preemptible-gpu-pool-${random_id.tf_subfix.hex}"
+  name     = "default-pool"
   location = local.location
   cluster  = google_container_cluster.gke.name
   autoscaling {

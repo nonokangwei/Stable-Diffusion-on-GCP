@@ -102,10 +102,6 @@ resource "helm_release" "agones" {
   values = [
     file("./agones-values.yaml")
   ]
-  set {
-    name  = "agones.controller.nodeSelector\\.cloud\\.google\\.com/gke-nodepool"
-    value = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
-  }
 }
 resource "null_resource" "connect_regional_cluster" {
   count = data.terraform_remote_state.gke.outputs.cluster_type == "regional" ? 1 : 0
@@ -127,17 +123,6 @@ resource "null_resource" "node_gpu_driver" {
   provisioner "local-exec" {
     when    = destroy
     command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
-  }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
-}
-
-resource "null_resource" "custom_metrics_stackdriver_adapter" {
-  provisioner "local-exec" {
-    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
-  }
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
   }
   depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }

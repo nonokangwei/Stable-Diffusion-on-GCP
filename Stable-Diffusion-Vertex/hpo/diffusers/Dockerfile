@@ -32,7 +32,6 @@ RUN pip install transformers==4.27.4
 RUN pip install accelerate==0.18.0
 RUN pip install Jinja2==3.1.2
 RUN pip install cloudml-hypertune==0.1.0.dev6
-
 #install pytorch
 RUN pip install torch==2.0.0+cu118 torchvision==0.15.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 
@@ -41,8 +40,9 @@ RUN pip install google-cloud-aiplatform
 RUN pip install google-cloud-storage
 
 # Copies the trainer code to the docker image.
-COPY train.py /root/train.py
-
+COPY train_diffusers.py /root/train.py
+COPY train_dreambooth.py /root/diffusers/examples/dreambooth/train_dreambooth.py
 # Sets up the entry point to invoke the trainer.
 #ENTRYPOINT ["python3", "-m", "train"]
+
 

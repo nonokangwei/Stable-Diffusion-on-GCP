@@ -46,6 +46,7 @@ def main(args):
     GRADIENT_ACCU_STEPS = int(args.gradient_accumulation_steps)
     NUM_VALID_IMG = int(args.num_validation_images)
     VALID_PRMOP = args.validation_prompt
+    HPO = args.hpo
     
 
     # Note the constraint: raise error: (args.train_text_encoder and args.gradient_accumulation_steps > 1 and accelerator.num_processes > 1)
@@ -71,7 +72,8 @@ def main(args):
                    f'--lr_warmup_steps=0 '
                    f'--num_class_images={NUM_CLASS_IMAGES} '
                    f'--enable_xformers_memory_efficient_attention '
-                   f'--max_train_steps={STEPS}')
+                   f'--max_train_steps={STEPS} '
+                   f'--hpo="{HPO}"')
         
         if TEXT_ENCODER == True:
             cmd_str += f' --train_text_encoder'
@@ -243,6 +245,7 @@ if __name__ == "__main__":
     parser.add_argument("--save_nfs", type=bool, default=False, help="if save the model to file store")
     parser.add_argument("--save_nfs_only", type=bool, default=False, help="only copy file from gcs to filestore, no training")
     parser.add_argument("--nfs_mnt_dir", type=str, default="/mnt/nfs/model_repo", help="Filestore's mount directory")
+    parser.add_argument("--hpo", type=str, default="n", help="if using vertex hyper parameter tuning")
 
     args = parser.parse_args()
     print(args)
@@ -261,3 +264,4 @@ if __name__ == "__main__":
             subprocess.run(f'ls {nfs_path}/{args.method}', shell=True) 
     else:
        main(args)
+

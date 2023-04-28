@@ -1,0 +1,8 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-f', 'Dockerfile', '-t', 'us-central1-docker.pkg.dev/PROJECT_ID/ARTIFACT_REGISTRY_NAME/sd-training:diffusers-hpo', '.' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/PROJECT_ID/ARTIFACT_REGISTRY_NAME/sd-training:diffusers-hpo']
+options:
+  machineType: 'N1_HIGHCPU_8'
+  diskSizeGb: '200'

@@ -11,7 +11,7 @@ terraform {
   }
 }
 locals {
-  project_id    = "star-ai-poc"
+  project_id    = "PROJECT_ID"
   region        = "us-central1"
   location      = "us-central1-f"
   gke_num_nodes = 1

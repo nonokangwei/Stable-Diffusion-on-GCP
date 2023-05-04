@@ -31,10 +31,11 @@ follow example of us-central1-f zonal cluster
 
 ```bash
 locals {
-  project_id      = "PROJECT_ID"
-  region          = "us-central1"
-  location        = "us-central1-f"
-  gke_num_nodes   = 1
+  project_id     = "PROJECT_ID"
+  region         = "us-central1"
+  filestore_zone = "us-central1-f"
+  location       = "us-central1"
+  gke_num_nodes  = 1
 }
 
 ```

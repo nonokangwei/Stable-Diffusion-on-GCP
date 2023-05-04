@@ -1,9 +1,11 @@
 locals {
-  project_id    = "PROJECT_ID"
-  region        = "us-central1"
-  location      = "us-central1-f"
-  gke_num_nodes = 1
+  project_id     = "PROJECT_ID"
+  region         = "us-central1"
+  filestore_zone = "us-central1-f"
+  location       = "us-central1"
+  gke_num_nodes  = 1
 }
+
 provider "google" {
   project = local.project_id
   region  = local.region
@@ -159,6 +161,11 @@ resource "google_container_node_pool" "gpu_nodepool" {
     min_node_count = 1
     max_node_count = 10
   }
+  lifecycle {
+    ignore_changes = [
+      initial_node_count
+    ]
+  }
   node_count = local.gke_num_nodes
   node_config {
     oauth_scopes = [
@@ -199,15 +206,13 @@ resource "google_container_node_pool" "gpu_nodepool" {
 }
 # Filestore
 resource "google_filestore_instance" "instance" {
-  name     = "nfs-store"
-  location = "us-central1-b"
+  name     = "nfs-store-${random_id.tf_subfix.hex}"
+  location = local.filestore_zone
   tier     = "BASIC_HDD"
-
   file_shares {
     capacity_gb = 1024
     name        = "vol1"
   }
-
   networks {
     network = google_compute_network.vpc.name
     modes   = ["MODE_IPV4"]
@@ -389,4 +394,3 @@ output "gpu_nodepool_name" {
   value       = google_container_node_pool.gpu_nodepool.name
   description = "gpu node pool name"
 }
-

@@ -48,7 +48,7 @@ def redis_http(request):
                             if loop == 3:
                                 sock.close()
                             continue
-                        if data.decode('utf-8') == MESSAGE:
+                        if MESSAGE in data.decode('utf-8'):
                             print("successed to close runtime on {}:{}!".format(UDP_IP, UDP_PORT))
                             sock.close()
                             break

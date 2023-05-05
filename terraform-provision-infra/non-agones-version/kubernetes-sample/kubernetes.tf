@@ -4,6 +4,14 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "2.19.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.1"
+    }
+    google = {
+      source  = "hashicorp/google"
+      version = "4.60.1"
+    }
   }
 }
 data "terraform_remote_state" "gke" {
@@ -75,13 +83,13 @@ resource "kubernetes_persistent_volume_claim_v1" "nfs_pvc" {
 }
 
 resource "null_resource" "connect_regional_cluster" {
-  count = data.terraform_remote_state.gke.outputs.cluster_type=="regional" ? 1 : 0
+  count = data.terraform_remote_state.gke.outputs.cluster_type == "regional" ? 1 : 0
   provisioner "local-exec" {
     command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name} --region ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
   }
 }
 resource "null_resource" "connect_zonal_cluster" {
-  count = data.terraform_remote_state.gke.outputs.cluster_type=="zonal" ? 1 : 0
+  count = data.terraform_remote_state.gke.outputs.cluster_type == "zonal" ? 1 : 0
   provisioner "local-exec" {
     command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name}  --zone ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
   }
@@ -91,10 +99,31 @@ resource "null_resource" "node_gpu_driver" {
   provisioner "local-exec" {
     command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
+  }
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
+}
+
+resource "null_resource" "custom_metrics_stackdriver_adapter" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
+  }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml"
+  }
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }
 
 resource "null_resource" "sample_sd15_deployment" {
   provisioner "local-exec" {
     command = "kubectl apply -f deployment_sd15.yaml"
   }
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete -f deployment_sd15.yaml"
+  }
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }

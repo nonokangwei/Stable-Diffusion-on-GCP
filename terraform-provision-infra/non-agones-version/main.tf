@@ -4,16 +4,15 @@ terraform {
       source  = "hashicorp/google"
       version = "4.60.1"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "2.19.0"
+    random = {
+      source  = "hashicorp/random"
+      version = "3.4.3"
     }
   }
 }
 locals {
-  project_id    = "star-ai-poc"
+  project_id    = "PROJECT_ID"
   region        = "us-central1"
-  zone          = "us-central1-f"
   location      = "us-central1-f"
   gke_num_nodes = 1
 }
@@ -21,17 +20,47 @@ provider "google" {
   project = local.project_id
   region  = local.region
 }
+resource "random_id" "tf_subfix" {
+  byte_length = 4
+}
 
+resource "google_project_service" "artifactregistry_svc" {
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "cloudbuild_svc" {
+  service            = "cloudbuild.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "compute_svc" {
+  service            = "compute.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "container_svc" {
+  service            = "container.googleapis.com"
+  disable_on_destroy = false
+}
+resource "google_project_service" "filestore_svc" {
+  service            = "file.googleapis.com"
+  disable_on_destroy = false
+}
+resource "google_project_service" "networkmanagement_svc" {
+  service            = "networkmanagement.googleapis.com"
+  disable_on_destroy = false
+}
 # VPC
 resource "google_compute_network" "vpc" {
   project                 = local.project_id
-  name                    = "tf-generate-vpc-${local.project_id}"
+  name                    = "tf-gen-vpc-${random_id.tf_subfix.hex}"
   auto_create_subnetworks = "false"
 }
 
 # Subnet
 resource "google_compute_subnetwork" "subnet" {
-  name          = "${local.region}-subnet"
+  name          = "tf-gen-subnet-${random_id.tf_subfix.hex}"
   region        = local.region
   network       = google_compute_network.vpc.name
   ip_cidr_range = "10.10.0.0/16"
@@ -39,7 +68,7 @@ resource "google_compute_subnetwork" "subnet" {
 
 # Cloud Router
 resource "google_compute_router" "router" {
-  name    = "tf-generate-router-${local.region}"
+  name    = "tf-gen-router-${local.region}-${random_id.tf_subfix.hex}"
   region  = google_compute_subnetwork.subnet.region
   network = google_compute_network.vpc.id
 }
@@ -50,9 +79,9 @@ resource "google_compute_address" "address" {
   region = google_compute_subnetwork.subnet.region
 }
 
-# NAT
+# NAT Gateway
 resource "google_compute_router_nat" "nat" {
-  name   = "tf-generate-${local.region}-nat-gw"
+  name   = "tf-gen-${local.region}-nat-gw"
   router = google_compute_router.router.name
   region = google_compute_router.router.region
 
@@ -68,7 +97,7 @@ resource "google_compute_router_nat" "nat" {
 
 # GKE cluster
 resource "google_container_cluster" "gke" {
-  name                     = "tf-gke-${local.region}"
+  name                     = "tf-gen-gke-${random_id.tf_subfix.hex}"
   location                 = local.location
   remove_default_node_pool = true
   initial_node_count       = 1
@@ -100,6 +129,7 @@ resource "google_container_cluster" "gke" {
   release_channel {
     channel = "STABLE"
   }
+
   maintenance_policy {
     daily_maintenance_window {
       start_time = "03:00"
@@ -107,11 +137,11 @@ resource "google_container_cluster" "gke" {
   }
   addons_config {
     http_load_balancing {
-      disabled = true
+      disabled = false
     }
 
     horizontal_pod_autoscaling {
-      disabled = true
+      disabled = false
     }
 
     gcp_filestore_csi_driver_config {
@@ -124,6 +154,13 @@ resource "google_container_cluster" "gke" {
 
     dns_cache_config {
       enabled = true
+    }
+  }
+  enable_shielded_nodes = true
+  node_config {
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
     }
   }
 }
@@ -140,11 +177,8 @@ resource "google_container_node_pool" "gpu_nodes" {
   node_count = local.gke_num_nodes
   node_config {
     oauth_scopes = [
-      #      "https://www.googleapis.com/auth/logging.write",
-      #      "https://www.googleapis.com/auth/monitoring",
       "https://www.googleapis.com/auth/cloud-platform"
     ]
-    #    service_account = "gke-svc-acct@star-ai-poc.iam.gserviceaccount.com"
 
     labels = {
       env = local.project_id
@@ -174,10 +208,13 @@ resource "google_container_node_pool" "gpu_nodes" {
     metadata = {
       disable-legacy-endpoints = "true"
     }
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
+    }
   }
 }
-#gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD
-#--file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
+# Filestore
 resource "google_filestore_instance" "instance" {
   name     = "nfs-store"
   location = "us-central1-b"
@@ -193,15 +230,16 @@ resource "google_filestore_instance" "instance" {
     modes   = ["MODE_IPV4"]
   }
 }
+#Artifact Registry
 resource "google_artifact_registry_repository" "sd_repo" {
   location      = local.region
-  repository_id = "sd-repository"
+  repository_id = "sd-repository-${random_id.tf_subfix.hex}"
   description   = "stable diffusion repository"
   format        = "DOCKER"
 }
 
 output "cluster_type" {
-  value       = local.location==local.region ? "regional" : "zonal"
+  value       = local.location == local.region ? "regional" : "zonal"
   description = "GCloud Region"
 }
 output "region" {
@@ -230,7 +268,6 @@ output "google_filestore_reserved_ip_range" {
   value       = google_filestore_instance.instance.networks[0].ip_addresses[0]
   description = "google_filestore_instance reserved_ip_range"
 }
-#gcloud auth configure-docker ${REGION}-docker.pkg.dev
 output "gcloud_artifacts_repositories_auth_cmd" {
   value       = "gcloud auth configure-docker ${local.region}-docker.pkg.dev"
   description = "repositories login gcloud example"

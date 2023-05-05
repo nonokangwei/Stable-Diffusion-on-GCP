@@ -56,6 +56,46 @@ if lookup_res == ngx.null then
     local sd_port = resp_data["ports"][2]["port"]
     local gs_port = resp_data["ports"][1]["port"]
     
+    if string.match(host, "internal") ~= nil then
+        local resolver = require "resty.dns.resolver"
+        local dns = "169.254.169.254"
+
+        local r, err = resolver:new{
+            nameservers = {dns},
+            retrans = 3,  -- 3 retransmissions on receive timeout
+            timeout = 1000,  -- 1 sec
+        }
+
+        if not r then
+            ngx.log(ngx.ERR, "failed to instantiate the resolver!")
+            ngx.status = 400
+            ngx.say("failed to instantiate the resolver!")
+            return ngx.exit(400)
+        end
+
+        local answers, err = r:query(host)
+        if not answers then
+            ngx.log(ngx.ERR, "failed to query the DNS server!")
+            ngx.status = 400
+            ngx.say("failed to query the DNS server!")
+            return ngx.exit(400)
+        end
+
+        if answers.errcode then
+            ngx.log(ngx.ERR, "dns server returned error code!")
+            ngx.status = 400
+            ngx.say("dns server returned error code!")
+            return ngx.exit(400)
+        end
+
+        for i, ans in ipairs(answers) do
+            if ans.address then
+                ngx.log(ngx.INFO, ans.address)
+                host = ans.address
+            end
+        end
+    end
+
     ngx.var.target = host .. ":" .. sd_port
     ngx.log(ngx.INFO, "set redis ", ngx.var.target)
 --     print("set redis ", ngx.var.target)

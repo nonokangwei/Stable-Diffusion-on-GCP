@@ -1,119 +1,101 @@
-# Stable-Diffusion on Google Cloud Quick Start Guide
+# Stable Diffusion WebUI on Google Cloud Quick Start Guide
 
-This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. User can just follow the step have your stable diffusion model running.
+This guide provides you steps to deploy a Stable Diffusion WebUI solution in your Google Cloud Project.
 
-* [Introduction](#Introduction)
-* [How-To](#how-to)
+| Folder                             | Description                                                                                                                                                                                                                                                                                   |
+|------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Stable-Diffusion-UI-Agones](./Stable-Diffusion-UI-Agones/README.md) | Demo with all the YAML files and Dockerfiles for hosting Stable Diffusion WebUI using Agones. |
+| [Stable-Diffusion-UI-GKE](./Stable-Diffusion-UI-GKE/README.md) | Demo with all the YAML files and Dockerfiles for hosting Stable Diffusion WebUI using GKE. |
+| [Stable-Diffusion-Vertex](./Stable-Diffusion-Vertex/README.md) | Reference codes for DreamBooth & Lora training on Vertex AI |
+| [terraform-provision-infra](./terraform-provision-infra/README.md) | Terraform scripts and resources to create the demo environment. |
+| [examples](./examples) | Example folder for a working directory | 
 
 ## Introduction
-   This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image.
+   This project demos how to effectively host the popular AUTOMATIC1111 web interface [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC11111/stable-diffusion-webui).
+   This is for demo purpose, you may need minimum modification according to your needs before put into production. However, it could also be use directly as an internal project.
+   
 
-## How To
-you can use the cloud shell as the run time to do below steps.
-### Before you begin
-1. make sure you have an available GCP project for your deployment
-2. Enable the required service API using [cloud shell](https://cloud.google.com/shell/docs/run-gcloud-commands)
-```
-gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com
-```
-### Create GKE Cluster
-do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus).
-In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing.
+   Projects and products include:
+*   [GKE](https://cloud.google.com/kubernetes-engine) for hosting Stable Diffusion and attaching GPU hardware to nodes in your Kubernetes cluster.
+*   [Filestore](https://cloud.google.com/filestore) for saving models and output files.
+*   [Vertex AI](https://cloud.google.com/vertex-ai) for training and fine-tuning the model.
+*   [Cloud Build](https://cloud.google.com/build) for building images and Continuous Integration.
+*   [GKE](https://cloud.google.com/kubernetes-engine) Standard clusters running [Agones](https://agones.dev/) for isolating runtime for different users and scaling.
+*   [Stable Diffusion](https://huggingface.co/runwayml/stable-diffusion-v1-5) for generating images from text.
+*   [Webui](https://github.com/AUTOMATIC1111/stable-diffusion-webui): A browser interface for Stable Diffusion.
 
-```
-PROJECT_ID=<replace this with your project id>
-GKE_CLUSTER_NAME=<replace this with your GKE cluster name>
-REGION=<replace this with your region>
-VPC_NETWORK=<replace this with your vpc network name>
-VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
+## Architecture
+![Agones](Stable-Diffusion-UI-Agones/images/sd-webui-agones.png)
+* Recommended for most use cases, use dedicated pod+gpu, with (almost) the same experience as running on your own workstation.
+* Architecture GKE + Agones + Spot(optional) + GPU(optional time sharing) + Vertex AI for supplementary Dreambooth/Lora training
+* Use [Cloud identity-aware proxy](https://cloud.google.com/iap) for login and authentication with Google account
+* A demo nginx+lua implementation as a frontend UI to interactive with Agones
+* Using Agones for resource allocation and release instead of HPA
+* Run Inference, training and all other functions and extensions on WebUI
+* Supplementary Dreambooth/Lora Training on Vertex AI
+* No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
-gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
-    --machine-type "custom-2-24576-ext" --accelerator "type=nvidia-tesla-t4,count=1" \
-    --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
-    --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
-    --num-nodes "1" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-private-nodes \
-    --master-ipv4-cidr "172.16.1.0/28" --enable-ip-alias --network "projects/${PROJECT_ID}/global/networks/${VPC_NETWORK}" \
-    --subnetwork "projects/${PROJECT_ID}/regions/${REGION}/subnetworks/${VPC_SUBNETWORK}" \
-    --no-enable-intra-node-visibility --default-max-pods-per-node "110" --no-enable-master-authorized-networks \
-    --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver,GcpFilestoreCsiDriver \
-    --enable-autoupgrade --no-enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 \
-    --enable-autoprovisioning --min-cpu 1 --max-cpu 64 --min-memory 1 --max-memory 256 \
-    --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform --no-enable-autoprovisioning-autorepair \
-    --enable-autoprovisioning-autoupgrade --autoprovisioning-max-surge-upgrade 1 --autoprovisioning-max-unavailable-upgrade 0 \
-    --enable-vertical-pod-autoscaling --enable-shielded-nodes \
-    --spot
-```
+![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
+* Recommended for serving as a Saas platform
+* Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
+* No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
+* Scaling with HPA with GPU metrics
+* Inference on WebUI, but suitable for training
+* Supplementary Dreambooth/Lora Training on Vertex AI
+* No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
-### Get credentials of GKE cluster
-```
-gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
-```
+## FAQ
+### Does it support multi-users/sessions?
 
-### Install GPU Driver
+For [Stable-Diffusion-UI-Agones](./Stable-Diffusion-UI-Agones/README.md), it support multi users/sessions in nature since it assign a dedicated pod for each login user.
+For [Stable-Diffusion-UI-GKE](./Stable-Diffusion-UI-GKE/README.md), AUTOMATIC1111's Stable Diffusion WebUI does not support multi users/sessions at this moment, you can refer to https://github.com/AUTOMATIC1111/stable-diffusion-webui/issues/7970. To support multi-users, we create one deployment for each model.
+
+### About file structure on NFS?
+For [Stable-Diffusion-UI-Agones](./Stable-Diffusion-UI-Agones/README.md), in the demo we use [init script](./Stable-Diffusion-UI-Agones/sd-webui/user-watch.py) to initialize folders for each users.
+You can customize the init script to meet your need, and there is a [reference](./examples/sd-webui/user-watch.py).
+
+For [Stable-Diffusion-UI-GKE](./Stable-Diffusion-UI-GKE/README.md), instead of building images for each model, we use one image with shared storage from Filestore and properly orchestrate for our files and folders.
+Please refer to the deployment_*.yaml for reference.
+
+Your folder structure could probably look like this in your Filestore file share, you may have to adjust according to your needs:
 ```
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+/models/Stable-diffusion # <--- This is where Stable Diffusion WebUI looking for models
+|-- nai
+|   |-- nai.ckpt
+|   |-- nai.vae.pt
+|   `-- nai.yaml
+|-- sd15
+|   `-- v1-5-pruned-emaonly.safetensors
+
+/inputs/ # <--- for training images, only use it when running training job from UI(sd_dreammbooth_extension)
+|-- alvan-nee-cropped
+|   |-- alvan-nee-9M0tSjb-cpA-unsplash_cropped.jpeg
+|   |-- alvan-nee-Id1DBHv4fbg-unsplash_cropped.jpeg
+|   |-- alvan-nee-bQaAJCbNq3g-unsplash_cropped.jpeg
+|   |-- alvan-nee-brFsZ7qszSY-unsplash_cropped.jpeg
+|   `-- alvan-nee-eoqnr8ikwFE-unsplash_cropped.jpeg
+
+/outputs/ # <--- for generated images
+|-- img2img-grids
+|   `-- 2023-03-14
+|       |-- grid-0000.png
+|       `-- grid-0001.png
+|-- img2img-images
+|   `-- 2023-03-14
+|       |-- 00000-425382929.png
+|       |-- 00001-631481262.png
+|       |-- 00002-1301840995.png
 ```
+#### How can I upload file?
+Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.
 
-### Create Cloud Artifacts as Docker Repo
+#### How can scale to zero after work?
+HPA & Agones only allow at least one replica, to do this you will have to manually scale to 0 or delete the resource.
+e.g. For GKE,
 ```
-BUILD_REGIST=<replace this with your preferred Artifacts repo name>
-
-gcloud artifacts repositories create ${BUILD_REGIST} --repository-format=docker \
---location=${REGION}
-
-gcloud auth configure-docker ${REGION}-docker.pkg.dev
+kubectl scale --replicas=1 deployment stable-diffusion-train-deployment
 ```
-
-
-### Build Stable Diffusion Image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts
-
+for Agones,
 ```
-cd gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Novel
-docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1
-docker push 
-
-```
-
-### Create Filestore
-Create Filestore storage, mount and prepare files and folders for models/outputs/training data
-You should prepare a VM to mount the filestore instance.
-
-```
-FILESTORE_NAME=<replace with filestore instance name>
-FILESTORE_ZONE=<replace with filestore instance zone>
-FILESHARE_NAME=<replace with fileshare name>
-
-
-gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
-gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
-
-```
-
-### Enable Node Pool Autoscale
-Set the Node pool with cluster autoscale(CA) capability, when the horizonal pod autocale feature scale up the pod replica size, it will trigger the node pool scale out to provide required GPU resource.
-```
-gcloud container clusters update ${GKE_CLUSTER_NAME} \
-    --enable-autoscaling \
-    --node-pool=default-pool \
-    --min-nodes=0 \
-    --max-nodes=5 \
-    --region=${REGION}
-```
-
-### Enable Horizonal Pod Autoscale(HPA)
-Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
-```
-kubectl create clusterrolebinding cluster-admin-binding \
-    --clusterrole cluster-admin --user "$(gcloud config get-value account)"
-```
-
-```
-kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter_new_resource_model.yaml
-```
-
-Deploy horizonal pod autoscale policy on the stable-diffusion deployment
-```
-kubectl apply -f ./Stable-Diffusion-UI-Novel/autoscale/hap.yaml
+kubectl delete fleet sd-agones-fleet
 ```

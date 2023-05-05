@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stable-diffusion-sd15-deployment
+  labels:
+    app: stable-diffusion-sd15
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stable-diffusion-sd15
+  template:
+    metadata:
+      labels:
+        app: stable-diffusion-sd15
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-gpu-sharing-strategy: time-sharing
+        cloud.google.com/gke-max-shared-clients-per-gpu: "2"
+      volumes:
+        - name: stable-diffusion-storage
+          persistentVolumeClaim:
+            claimName: vol1
+      containers:
+      - name: stable-diffusion-webui
+        image: waangjie/stable-diffusion-webui:train
+        resources:
+          limits:
+            cpu: 1
+            memory: 22Gi
+            nvidia.com/gpu: 1
+        ports:
+          - containerPort: 7860
+        volumeMounts:
+          - mountPath: "/stable-diffusion-webui/models/Stable-diffusion"
+            name: stable-diffusion-storage
+            subPath: models/Stable-diffusion/sd15
+          - mountPath: "/stable-diffusion-webui/outputs"
+            name: stable-diffusion-storage
+            subPath: outputs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stable-diffusion-web
+  labels:
+    app: stable-diffusion-sd15
+spec:
+  ports:
+  - protocol: TCP
+    name: web
+    port: 80
+    targetPort: 7860
+  selector:
+    app: stable-diffusion-sd15
+  type: LoadBalancer
+

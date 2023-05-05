@@ -2,6 +2,25 @@
 
 We Offer two version deployment of Stable Diffusion Web UI on GKE
 
+###  Before you begin
+Make sure that you have install [google-cloud-sdk](https://cloud.google.com/sdk/docs/install#linux) and [kubectl](https://cloud.google.com/sdk/docs/components) and gke-gcloud-auth-plugin
+Make sure that you have finish google-cloud-sdk setup 
+Example cmd as follow:
+```bash
+#install google cloud sdk 
+curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-429.0.0-linux-arm.tar.gz
+tar -xf google-cloud-cli-429.0.0-linux-arm.tar.gz 
+./google-cloud-sdk/install.sh 
+#install kubectl and gke-gcloud-auth-plugin
+gcloud components install kubectl
+gcloud components install gke-gcloud-auth-plugin
+#login gcloud and gcloud application-default
+gcloud auth application-default login
+gcloud auth login
+gcloud config set project PROJECT_ID
+
+```
+
 ##  Agones Version
 ### 01 Set up permissions
 

@@ -1,8 +1,20 @@
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "4.63.1"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.5.1"
+    }
+  }
+}
 locals {
   project_id     = "PROJECT_ID"
   region         = "us-central1"
   filestore_zone = "us-central1-f"
-  location       = "us-central1"
+  location       = "us-central1-f"
   gke_num_nodes  = 1
 }
 
@@ -28,7 +40,9 @@ variable "gcp_service_list" {
     "cloudfunctions.googleapis.com",
     "cloudscheduler.googleapis.com",
     "iap.googleapis.com",
-    "dns.googleapis.com"
+    "dns.googleapis.com",
+    "redis.googleapis.com",
+    "vpcaccess.googleapis.com"
   ]
 }
 
@@ -41,11 +55,16 @@ resource "google_project_service" "gcp_services" {
   disable_on_destroy         = false
 }
 
+data "google_compute_default_service_account" "default" {
+  depends_on = [google_project_service.gcp_services]
+}
+
 # VPC
 resource "google_compute_network" "vpc" {
   project                 = local.project_id
   name                    = "tf-gen-vpc-${random_id.tf_subfix.hex}"
   auto_create_subnetworks = "false"
+  depends_on              = [google_project_service.gcp_services]
 }
 
 # Subnet
@@ -64,13 +83,15 @@ resource "google_compute_router" "router" {
 }
 # NAT IP
 resource "google_compute_address" "address" {
-  count  = 2
-  name   = "nat-manual-ip-${count.index}"
-  region = google_compute_subnetwork.subnet.region
+  count      = 2
+  name       = "nat-manual-ip-${count.index}"
+  region     = google_compute_subnetwork.subnet.region
+  depends_on = [google_project_service.gcp_services]
 }
 
 resource "google_compute_global_address" "webui_addr" {
-  name = "sd-webui-ingress-${random_id.tf_subfix.hex}"
+  name       = "sd-webui-ingress-${random_id.tf_subfix.hex}"
+  depends_on = [google_project_service.gcp_services]
 }
 
 # NAT Gateway
@@ -140,6 +161,9 @@ resource "google_container_cluster" "gke" {
       enable_integrity_monitoring = true
     }
   }
+  lifecycle {
+    ignore_changes = all
+  }
 }
 resource "google_compute_firewall" "agones" {
   depends_on = [google_container_cluster.gke]
@@ -162,9 +186,7 @@ resource "google_container_node_pool" "gpu_nodepool" {
     max_node_count = 10
   }
   lifecycle {
-    ignore_changes = [
-      initial_node_count
-    ]
+    ignore_changes = all
   }
   node_count = local.gke_num_nodes
   node_config {
@@ -224,6 +246,7 @@ resource "google_artifact_registry_repository" "sd_repo" {
   repository_id = "sd-repository-${random_id.tf_subfix.hex}"
   description   = "stable diffusion repository"
   format        = "DOCKER"
+  depends_on    = [google_project_service.gcp_services]
 }
 # Redis cache
 resource "google_redis_instance" "cache" {
@@ -255,11 +278,13 @@ resource "google_vpc_access_connector" "connector" {
 }
 
 resource "google_storage_bucket" "bucket" {
-  name          = "cloud-function-source-${random_id.tf_subfix.hex}"
-  project       = local.project_id
-  location      = local.region
-  force_destroy = true
-  storage_class = "COLDLINE"
+  name                        = "cloud-function-source-${random_id.tf_subfix.hex}"
+  project                     = local.project_id
+  location                    = local.region
+  force_destroy               = true
+  storage_class               = "COLDLINE"
+  uniform_bucket_level_access = true
+  depends_on                  = [google_project_service.gcp_services]
 }
 
 resource "google_storage_bucket_object" "archive" {
@@ -294,7 +319,9 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
   cloud_function = google_cloudfunctions_function.function.name
 
   role   = "roles/cloudfunctions.invoker"
-  member = "allUsers"
+  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  #   "allUsers"
+  depends_on = [google_project_service.gcp_services]
 }
 
 resource "google_cloud_scheduler_job" "job" {
@@ -305,7 +332,11 @@ resource "google_cloud_scheduler_job" "job" {
   http_target {
     http_method = "GET"
     uri         = google_cloudfunctions_function.function.https_trigger_url
+    oidc_token {
+      service_account_email = data.google_compute_default_service_account.default.email
+    }
   }
+  depends_on = [google_project_service.gcp_services]
 }
 
 resource "google_dns_managed_zone" "private_zone" {
@@ -318,6 +349,7 @@ resource "google_dns_managed_zone" "private_zone" {
       network_url = google_compute_network.vpc.id
     }
   }
+  depends_on = [google_project_service.gcp_services]
 }
 
 resource "google_dns_record_set" "redis_a" {

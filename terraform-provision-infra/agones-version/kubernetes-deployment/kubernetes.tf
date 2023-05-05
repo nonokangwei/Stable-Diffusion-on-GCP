@@ -1,18 +1,34 @@
-
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "4.63.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "2.9.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.20.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.1"
+    }
+  }
+}
 data "terraform_remote_state" "gke" {
   backend = "local"
-
   config = {
     path = "../terraform.tfstate"
   }
 }
-
 locals {
   oauth_client_id     = "OAUTH_CLIENT_ID"
   oauth_client_secret = "OAUTH_CLIENT_SECRET"
-  sd_webui_domain     = "your_owned_domain_or_subdomain"
+  sd_webui_domain     = "YOUR_OWNED_CUSTOM_DOMAIN_OR_SUBDOMAIN"
 }
-
 data "google_client_config" "default" {}
 
 data "google_container_cluster" "my_cluster" {

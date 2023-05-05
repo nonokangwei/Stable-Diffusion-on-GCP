@@ -32,7 +32,8 @@ def main(args):
     USE_8BIT_ADAM = bool(args.use_8bit_adam)
     USE_LION = bool(args.use_lion)
     NOISE_OFFSET = float(args.noise_offset)
-    
+    HPO = args.hpo
+
     if METHOD == "kohya_lora":
         os.chdir("/root/lora-scripts")
         # for complex commands, with many args, use string + `shell=True`:
@@ -69,7 +70,8 @@ def main(args):
                    f'--min_bucket_reso=256 '
                    f'--max_bucket_reso=1024 '
                    f'--keep_tokens=0 '
-                   f'--xformers --shuffle_caption ')
+                   f'--xformers --shuffle_caption '
+                   f'--hpo="{HPO}"')
                                     
         if NETWORK_WEIGHTS:
             cmd_str += f' --network_weights="{NETWORK_WEIGHTS}"'
@@ -130,6 +132,8 @@ if __name__ == "__main__":
     parser.add_argument("--save_nfs", type=bool, default=False, help="if save the model to file store")
     parser.add_argument("--save_nfs_only", type=bool, default=False, help="only copy file from gcs to filestore, no training")
     parser.add_argument("--nfs_mnt_dir", type=str, default="/mnt/nfs/model_repo", help="Filestore's mount directory")
+    parser.add_argument("--hpo", type=str, default="n", help="if using hyper parameter tuning")
+    
     args = parser.parse_args()
     print(args)
     if bool(args.save_nfs_only) == True:
@@ -144,6 +148,6 @@ if __name__ == "__main__":
                print(f"{nfs_path}/kohya already exists.")
             copy_cmd = f'cp {args.output_storage}/*.safetensors {nfs_path}/kohya'
             subprocess.run(copy_cmd, shell=True)
-            subprocess.run(f'ls {nfs_path}/kohya', shell=True) 
+            subprocess.run(f'ls {nfs_path}/kohya', shell=True)  
     else:
        main(args)

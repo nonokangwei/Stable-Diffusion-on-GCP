@@ -45,6 +45,6 @@ RUN pip install torch==2.0.0+cu118 torchvision==0.15.1+cu118 --extra-index-url h
 
 # Copies the trainer code to the docker image.
 COPY train_kohya.py /root/train_kohya.py
-
+COPY train_network.py /root/lora-scripts/sd-scripts/train_network.py
 # Sets up the entry point to invoke the trainer.
 #ENTRYPOINT ["python3", "-m", "train_kohya"]

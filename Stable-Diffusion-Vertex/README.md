@@ -2,10 +2,11 @@
 
 This guide gives simple steps for stable diffusion users to fine-tune stable diffusion on Google Cloud Vertex AI. Two options are provided, one is Vertex AI custom training service, the other is Workbench. User can just follow the step have your stable diffusion model training.
 
-* [Introduction](#Introduction)
-* [Build Image](#Build_Image)
-* [Vertex AI custom training](#Vertex_AI_Custom_Training)
-* [Vertex AI Workbench](#Vertex_AI_Workbench)
+* [Introduction](#introduction)
+* [Build Image](#build-image)
+* [Vertex AI custom training](#vertex-ai-custom-training)
+* [Vertex AI Workbench](#vertex-ai-workbench)
+* [Vertex AI hyperparameter tuning](#vertex-ai-hp-tuning)
 
 ## Introduction
    [Vertex AI](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform) is a machine learning (ML) platform that lets you train and deploy ML models and AI applications. Vertex AI combines data engineering, data science, and ML engineering workflows, enabling your teams to collaborate using a common toolset.
@@ -106,12 +107,21 @@ machineSpec:
     acceleratorCount: 2
 ```
 
-4. Submit custom training job with arguments input. The **command** will work as the entrypoint, and is necessary. And the parameter **args** can be configured like below:
+4. Submit custom training job with arguments input.
+
+ The **command** will work as the entrypoint, add it or not depends on if Entrypoint is added in Dockerfile.
+ 
+ * If **ENTRYPOINT ["python3", "-m", "train_kohya"]** is added in Dockerfile, then **command** is no need to add in the cloud command. But this docker image will be not working in Vertex AI Notebook.
+
+* If no **Entrypoint** in Dockerfile, then custom training command need this **command** parameters, like **--command="python3,train_kohya.py"**. But this docker image can be also used in Notebook Executor or Notebook loading custom image.
+
+
+And the parameter **args** can be configured like below:
     * The model name can be Huggingface repo id, or Cloud Storage path, like */gcs/bucket_name/model_folder*
     * The input_storage and output_storage should be Cloud Storage path like */gcs/bucket_name/input_or_output_folder*
     * Prompt can be like "a photo of somebody or some special things
     * Other arguments can be referenced from python file.
-
+  
 ```
 gcloud ai custom-jobs create \
   --region=us-central1 \
@@ -133,13 +143,13 @@ After sumit training job to Vertex AI, you can monitor its status in Cloud UI.
 ![Vertex AI custom training UI](./images/custom_training_status.png)
 
 ### Copy safetensors model to File Store
-We also add Filestore support. If you have created a Filestore, and configure the network as [instructed](https://cloud.google.com/vertex-ai/docs/training/train-nfs-share). In custom training, the model can also be saved to File Store. In this project, the File Store's share name is restricted as **vol1**, and mount path is restricted as */mnt/nfs/model_repo*.
+We also add Filestore support. If you have created a Filestore, and configure the network as [instructed](https://cloud.google.com/vertex-ai/docs/training/train-nfs-share). In custom training, the model can also be saved to File Store. In this project, the File Store's share name is **vol1**, this is the name when you create the FileStore. And you can choose mount path, prefix with */mnt/nfs*, e.g. */mnt/nfs/model_repo*. In the vertex-config.yaml file, you just copy the share name and input your mount path. And when executing the code, you should pass the arguments of **nfs_mnt_dir** with the same directory name. 
 
 ![File Store](./images/FileStore.png)
 
-In Diffusers folder, *train_wo_nfs.py* does not include NFS function, and regular *train.py* contains the NFS function. You can use *Vertex-config-nfs.yaml* and submit training job with **save_nfs=True** arguments to enable models saving to File Store. 
+In Diffusers folder, *train_wo_nfs.py* does not include NFS function, and regular *train.py* contains the NFS function. You can use *Vertex-config-nfs.yaml* and submit training job with **save_nfs=True** arguments to enable models saving to File Store, and **nfs_mnt_dir** for mount directory.
 
-And if argument **save_nfs_only=True** is selected, then it only executes copy models task from GCS (*output_storage*) to File Store(*"/mnt/nfs/model_repo"*), so **output_storage** also needs to be selected in this mode. Other arguments are not used.
+And if argument **save_nfs_only=True** is selected, then it only executes copy models task from GCS (*output_storage*) to File Store(e.g. *"/mnt/nfs/model_repo"*), so **output_storage** also needs to be selected in this mode. Other arguments are not used.
 
 In Kohya-lora folder, the same.
 
@@ -177,7 +187,7 @@ The executor lets you submit a notebook (ipynb) file from Workbech, to run on Ve
 
 ### Creare managed instance
 
-Create a managed instance in Vertex AI Workbench. If you want to load custom image, make sure to add this custom image when provisioning the instance. You can just use the docker image built in custom training job. It's a uniform image, covering all scenarios.
+Create a managed instance in Vertex AI Workbench. If you want to load custom image, make sure to add this custom image when provisioning the instance. You can just use the docker image built in custom training job (with no Entrypoint). It's a uniform image, covering all scenarios. If your docker image includes an Entrypoint, then Workbench may fail to execute the code in the image.
 
 ![Custom Image](./images/workbench_custom_image.png)
 ![Custom Image in Workbench](./images/workbench_image_status.png)
@@ -221,3 +231,19 @@ When finished, you can get the fine-tuned model in Cloud Storage output folder.
   
 * The *pytorch_lora_weights.bin* file is model in original diffusers format, while *pytorch_lora_weights.safetensors* is converted from .bin file, userd for WebUI.
 * The training logs are also in the event folder.
+
+## Vertex AI HP Tuning
+
+[Hyperparameter tuning](https://cloud.google.com/vertex-ai/docs/training/hyperparameter-tuning-overview) takes advantage of the processing infrastructure of Google Cloud to test different hyperparameter configurations when training your model. It can give you optimized values for hyperparameters, which maximizes your model's predictive accuracy.
+
+We also demonstrated how to leverage Vertex AI hp-tuning in custom training job.
+
+The demo is in *hpo* folder. 
+- One demo is to hp-tune learning rate of kohya's lora method. For kohya-lora, the modification is mainly in *train_network.py*, which is from lora-scripts' source code. We add loss reporting functions to report the loss and global steps to hp-tuning service(with **cloudml-hypertune** package). And tuned target is learning rate, and tuned metrics is to minumize the average loss, which can be reference in *vertex-ai-config-hpo.yaml* file.
+- The other demo is to hp-tune learning rate of diffusers' dreambooth method. the modification is mainly in *train_dreambooth.py*, which is from diffusers' source code. We add loss reporting functions to report the loss and global steps to hp-tuning service. And tuned target is learning rate, and tuned metrics is to minumize the loss, which can be reference in *vertex-ai-config-hpo.yaml* file.
+
+When submit the job with **"gcloud ai hp-tuning-jobs create"** command, you can monitor the progress in cloud console. You can see for each learning rate selection, what's the minimum average loss, and what's its step. This makes users choose the best learning rate.
+
+![Vertex AI HPO status](images/hpo_status.png)
+
+Then you can configure this learning rate in a custom training job to acquire best trained model.

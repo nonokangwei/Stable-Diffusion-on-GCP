@@ -2,11 +2,11 @@
 
 This guide gives simple steps for stable diffusion users to fine-tune stable diffusion on Google Cloud Vertex AI. Two options are provided, one is Vertex AI custom training service, the other is Workbench. User can just follow the step have your stable diffusion model training.
 
-* [Introduction](#Introduction)
-* [Build Image](#Build_Image)
-* [Vertex AI custom training](#Vertex_AI_Custom_Training)
-* [Vertex AI Workbench](#Vertex_AI_Workbench)
-* [Vertex AI hyperparameter tuning](#Vertex_AI_HP_Tuning)
+* [Introduction](#introduction)
+* [Build Image](#build-image)
+* [Vertex AI custom training](#vertex-ai-custom-training)
+* [Vertex AI Workbench](#vertex-ai-workbench)
+* [Vertex AI hyperparameter tuning](#vertex-ai-hp-tuning)
 
 ## Introduction
    [Vertex AI](https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform) is a machine learning (ML) platform that lets you train and deploy ML models and AI applications. Vertex AI combines data engineering, data science, and ML engineering workflows, enabling your teams to collaborate using a common toolset.
@@ -232,7 +232,7 @@ When finished, you can get the fine-tuned model in Cloud Storage output folder.
 * The *pytorch_lora_weights.bin* file is model in original diffusers format, while *pytorch_lora_weights.safetensors* is converted from .bin file, userd for WebUI.
 * The training logs are also in the event folder.
 
-## Vertex_AI_HP_Tuning
+## Vertex AI HP Tuning
 
 [Hyperparameter tuning](https://cloud.google.com/vertex-ai/docs/training/hyperparameter-tuning-overview) takes advantage of the processing infrastructure of Google Cloud to test different hyperparameter configurations when training your model. It can give you optimized values for hyperparameters, which maximizes your model's predictive accuracy.
 

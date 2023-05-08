@@ -2,8 +2,6 @@ module agones.dev/agones/examples/simple-game-server
 
 go 1.19
 
-go 1.19
-
 require agones.dev/agones v1.31.0
 
 require (

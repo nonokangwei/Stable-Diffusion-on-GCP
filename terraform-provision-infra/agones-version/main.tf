@@ -11,11 +11,12 @@ terraform {
   }
 }
 locals {
-  project_id     = "PROJECT_ID"
-  region         = "us-central1"
-  filestore_zone = "us-central1-f"
-  location       = "us-central1-f"
-  gke_num_nodes  = 1
+  project_id       = "PROJECT_ID"
+  region           = "us-central1"
+  filestore_zone   = "us-central1-f"   # Filestore location must be same region or zone with gke
+  cluster_location = "us-central1-f"   # GKE Cluster location
+  accelerator_type = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
+  gke_num_nodes    = 1
 }
 
 provider "google" {
@@ -101,25 +102,21 @@ resource "google_compute_router_nat" "nat" {
   region                             = google_compute_router.router.region
   nat_ip_allocate_option             = "MANUAL_ONLY"
   nat_ips                            = google_compute_address.address.*.self_link
-  source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
-  subnetwork {
-    name                    = google_compute_subnetwork.subnet.id
-    source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
-  }
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
 
 # GKE cluster
 resource "google_container_cluster" "gke" {
   name                     = "tf-gen-gke-${random_id.tf_subfix.hex}"
-  location                 = local.location
+  location                 = local.cluster_location
   remove_default_node_pool = true
   enable_shielded_nodes    = true
   initial_node_count       = 1
   network                  = google_compute_network.vpc.name
   subnetwork               = google_compute_subnetwork.subnet.name
   private_cluster_config {
-    enable_private_nodes   = "true"
-    master_ipv4_cidr_block = "192.168.1.0/28"
+    enable_private_nodes    = true
+    master_ipv4_cidr_block  = "192.168.1.0/28"
   }
   ip_allocation_policy {
   }
@@ -161,33 +158,23 @@ resource "google_container_cluster" "gke" {
       enable_integrity_monitoring = true
     }
   }
-  lifecycle {
-    ignore_changes = all
-  }
+  #   lifecycle {
+  #     ignore_changes = all
+  #   }
 }
-resource "google_compute_firewall" "agones" {
-  depends_on = [google_container_cluster.gke]
-  name       = "allow-agones-${random_id.tf_subfix.hex}"
-  network    = google_compute_network.vpc.name
-  project    = local.project_id
-  allow {
-    protocol = "tcp"
-    ports    = ["443", "8080", "8081"]
-  }
-  source_ranges = ["0.0.0.0/0"]
-}
+
 # Separately Managed Node Pool
 resource "google_container_node_pool" "gpu_nodepool" {
-  name     = "default-pool"
-  location = local.location
+  name     = "${local.accelerator_type}-nodepool"
+  location = local.cluster_location
   cluster  = google_container_cluster.gke.name
   autoscaling {
     min_node_count = 1
     max_node_count = 10
   }
-  lifecycle {
-    ignore_changes = all
-  }
+  #   lifecycle {
+  #     ignore_changes = all
+  #   }
   node_count = local.gke_num_nodes
   node_config {
     oauth_scopes = [
@@ -205,12 +192,11 @@ resource "google_container_node_pool" "gpu_nodepool" {
       enabled = true
     }
     guest_accelerator {
-      type  = "nvidia-tesla-t4"
+      type  = local.accelerator_type
       count = 1
       gpu_sharing_config {
         gpu_sharing_strategy       = "TIME_SHARING"
         max_shared_clients_per_gpu = 2
-
       }
     }
     disk_type    = "pd-balanced"
@@ -225,6 +211,18 @@ resource "google_container_node_pool" "gpu_nodepool" {
       enable_integrity_monitoring = true
     }
   }
+}
+#agones firewall
+resource "google_compute_firewall" "agones" {
+  depends_on = [google_container_cluster.gke]
+  name       = "allow-agones-${random_id.tf_subfix.hex}"
+  network    = google_compute_network.vpc.name
+  project    = local.project_id
+  allow {
+    protocol = "tcp"
+    ports    = ["443", "8080", "8081"]
+  }
+  source_ranges = ["0.0.0.0/0"]
 }
 # Filestore
 resource "google_filestore_instance" "instance" {
@@ -318,9 +316,8 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
   region         = google_cloudfunctions_function.function.region
   cloud_function = google_cloudfunctions_function.function.name
 
-  role   = "roles/cloudfunctions.invoker"
-  member = "serviceAccount:${data.google_compute_default_service_account.default.email}"
-  #   "allUsers"
+  role       = "roles/cloudfunctions.invoker"
+  member     = "serviceAccount:${data.google_compute_default_service_account.default.email}"
   depends_on = [google_project_service.gcp_services]
 }
 
@@ -361,7 +358,7 @@ resource "google_dns_record_set" "redis_a" {
 }
 
 output "cluster_type" {
-  value       = local.location == local.region ? "regional" : "zonal"
+  value       = local.cluster_location == local.region ? "regional" : "zonal"
   description = "GCloud Region"
 }
 output "region" {
@@ -369,7 +366,7 @@ output "region" {
   description = "GCloud Region"
 }
 output "gke_location" {
-  value       = local.location
+  value       = local.cluster_location
   description = "gke location"
 }
 output "project_id" {

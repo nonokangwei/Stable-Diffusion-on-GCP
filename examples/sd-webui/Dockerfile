@@ -41,6 +41,8 @@ EXPOSE 7860
 
 COPY user-watch.py /stable-diffusion-webui/user-watch.py
 COPY start.sh /stable-diffusion-webui/start.sh
+RUN mkdir -p /stable-diffusion-webui/ui-configs/
+COPY *.json /stable-diffusion-webui/ui-configs/
 
 WORKDIR /stable-diffusion-webui/
 CMD ["python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access", "--ui-config-file=/stable-diffusion-webui/ui-configs/ui-config.json", "--ui-settings-file=/stable-diffusion-webui/ui-configs/config.json"]

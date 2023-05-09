@@ -26,32 +26,27 @@ for line in r.iter_lines(decode_unicode=True):
             # setup folders here
             if os.path.isdir('/stable-diffusion-webui/outputs'):
                 shutil.rmtree('/stable-diffusion-webui/outputs')
-            if os.path.isdir('/stable-diffusion-webui/models'):
-                shutil.rmtree('/stable-diffusion-webui/models')
+            # if os.path.isdir('/stable-diffusion-webui/models'):
+            #     shutil.rmtree('/stable-diffusion-webui/models')
 
             Path(os.path.join(mount_dir, userid, 'outputs')).mkdir(parents=True, exist_ok=True)
             Path(os.path.join(mount_dir, userid, 'inputs')).mkdir(parents=True, exist_ok=True)
 
             os.symlink(os.path.join(mount_dir, userid, 'outputs'), '/stable-diffusion-webui/outputs', target_is_directory = True)
             os.symlink(os.path.join(mount_dir, userid, 'inputs'), '/stable-diffusion-webui/inputs', target_is_directory = True)
-            os.symlink(os.path.join(mount_dir, 'models'), '/stable-diffusion-webui/models', target_is_directory = True)
+            os.symlink(os.path.join(mount_dir, 'models'), '/stable-diffusion-webui/models/public', target_is_directory = True)
             
             # webui config files
             Path(os.path.join(mount_dir, userid, 'ui-configs')).mkdir(parents=True, exist_ok=True)
-            # config_files_to_link = ['ui-config.json', 'config.json']
-            os.symlink(os.path.join(mount_dir, userid, 'ui-configs'), '/stable-diffusion-webui/ui-configs', target_is_directory = True)
-
-            # for file in config_files_to_link:
-            #     file_origin = os.path.join('/stable-diffusion-webui', file)
-            #     file_to_link = os.path.join(mount_dir, userid, 'configs', file)
-
-            #     if os.path.isfile(file_to_link):
-            #         if os.path.isfile(file_origin):
-            #             os.remove(file_origin)
-            #         os.symlink(file_to_link, file_origin, target_is_directory = False)
-            #     elif os.path.isfile(file_origin):
-            #         shutil.move(file_origin, file_to_link)
-            #         os.symlink(file_to_link, file_origin, target_is_directory = False)
-            #     else:
-            #         pass
+            
+            config_files_to_link = ['ui-config.json', 'config.json']
+            
+            for file in config_files_to_link:
+                file_origin = os.path.join('/stable-diffusion-webui', file)
+                file_dest = os.path.join(mount_dir, userid, 'ui-configs', file)
+                if os.path.isfile(file_origin) and not os.path.isfile(file_dest):
+                    shutil.copy2(file_origin, file_dest)
+                if os.path.isfile(file_dest):
+                    os.remove(file_origin)
+                    os.symlink(file_dest, file_origin, target_is_directory = False)
             break

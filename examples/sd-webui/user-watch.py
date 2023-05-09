@@ -38,19 +38,19 @@ for line in r.iter_lines(decode_unicode=True):
             
             # webui config files
             Path(os.path.join(mount_dir, userid, 'configs')).mkdir(parents=True, exist_ok=True)
-            config_files_to_link = ['ui-config.json', 'config.json']
+            # config_files_to_link = ['ui-config.json', 'config.json']
 
-            for file in config_files_to_link:
-                file_origin = os.path.join('/stable-diffusion-webui', file)
-                file_to_link = os.path.join(mount_dir, userid, 'configs', file)
+            # for file in config_files_to_link:
+            #     file_origin = os.path.join('/stable-diffusion-webui', file)
+            #     file_to_link = os.path.join(mount_dir, userid, 'configs', file)
 
-                if os.path.isfile(file_to_link):
-                    if os.path.isfile(file_origin):
-                        os.remove(file_origin)
-                    os.symlink(file_to_link, file_origin, target_is_directory = False)
-                elif os.path.isfile(file_origin):
-                    shutil.move(file_origin, file_to_link)
-                    os.symlink(file_to_link, file_origin, target_is_directory = False)
-                else:
-                    pass
+            #     if os.path.isfile(file_to_link):
+            #         if os.path.isfile(file_origin):
+            #             os.remove(file_origin)
+            #         os.symlink(file_to_link, file_origin, target_is_directory = False)
+            #     elif os.path.isfile(file_origin):
+            #         shutil.move(file_origin, file_to_link)
+            #         os.symlink(file_to_link, file_origin, target_is_directory = False)
+            #     else:
+            #         pass
             break

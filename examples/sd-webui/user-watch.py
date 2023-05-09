@@ -46,7 +46,7 @@ for line in r.iter_lines(decode_unicode=True):
 
                 if os.path.isfile(file_to_link):
                     if os.path.isfile(file_origin):
-                        shutil.rmtree(file_origin)
+                        os.remove(file_origin)
                     os.symlink(file_to_link, file_origin, target_is_directory = False)
                 elif os.path.isfile(file_origin):
                     shutil.move(file_origin, file_to_link)

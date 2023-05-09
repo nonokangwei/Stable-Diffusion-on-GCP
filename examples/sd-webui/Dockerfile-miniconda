@@ -51,7 +51,8 @@ RUN set -ex && cd stable-diffusion-webui \
     && git clone https://github.com/toriato/stable-diffusion-webui-wd14-tagger.git extensions/stable-diffusion-webui-wd14-tagger \
     && git clone https://github.com/hanamizuki-ai/stable-diffusion-webui-localization-zh_Hans.git extensions/stable-diffusion-webui-localization-zh_Hans \
     && git clone https://github.com/DominikDoom/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
-    && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet
+    && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet \
+    && git clone https://github.com/zanllp/sd-webui-infinite-image-browsing.git extensions/sd-webui-infinite-image-browsing
 
 RUN . /root/.bashrc \
     && python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary

@@ -46,15 +46,16 @@ edit the main.tf replace the locals parameter with your project's.
 - If you choose regional cluster replace the location parameter with region code
 - If you choose zonal cluster replace the location parameter with zone code
 
-follow example of us-central1-f zonal cluster
+follow example of us-central1-f zonal cluster with Nvdia T4 Accelerator Node
 
 ```bash
 locals {
   project_id     = "PROJECT_ID"
-  region         = "us-central1"
-  filestore_zone = "us-central1-f"
-  location       = "us-central1-f"
-  gke_num_nodes  = 1
+  region           = "us-central1"
+  filestore_zone   = "us-central1-f"   # Filestore location must be same region or zone with gke
+  cluster_location = "us-central1-f"   # GKE Cluster location
+  accelerator_type = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
+  gke_num_nodes    = 1
 }
 
 ```

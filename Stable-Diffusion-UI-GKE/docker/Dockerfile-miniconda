@@ -23,7 +23,7 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
 RUN echo 'conda activate sd-webui' >> /root/.bashrc
 
 RUN . /root/.bashrc \
-    && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 \
+    && python3 -m pip install torch torchvision \
     && python3 -m pip install git+https://github.com/TencentARC/GFPGAN.git@8d2447a2d918f8eba5a4a01463fd48e45126a379 --prefer-binary \
     && python3 -m pip install git+https://github.com/openai/CLIP.git@d50d76daa670286dd6cacf3bcd80b5e4823fc8e1 --prefer-binary \
     && python3 -m pip install git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b --prefer-binary \
@@ -51,7 +51,8 @@ RUN set -ex && cd stable-diffusion-webui \
     && git clone https://github.com/toriato/stable-diffusion-webui-wd14-tagger.git extensions/stable-diffusion-webui-wd14-tagger \
     && git clone https://github.com/hanamizuki-ai/stable-diffusion-webui-localization-zh_Hans.git extensions/stable-diffusion-webui-localization-zh_Hans \
     && git clone https://github.com/DominikDoom/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
-    && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet
+    && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet \
+    && git clone https://github.com/zanllp/sd-webui-infinite-image-browsing.git extensions/sd-webui-infinite-image-browsing
 
 RUN . /root/.bashrc \
     && python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary

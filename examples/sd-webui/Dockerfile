@@ -2,10 +2,10 @@ FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
-    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev ffmpeg libsm6 libxext6 && \
+    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev libxext6 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip install torch torchvision torchaudio
+RUN python3 -m pip install torch torchvision --prefer-binary
 RUN python3 -m pip install git+https://github.com/TencentARC/GFPGAN.git@8d2447a2d918f8eba5a4a01463fd48e45126a379 --prefer-binary
 RUN python3 -m pip install git+https://github.com/openai/CLIP.git@d50d76daa670286dd6cacf3bcd80b5e4823fc8e1 --prefer-binary
 RUN python3 -m pip install git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b --prefer-binary
@@ -26,13 +26,12 @@ RUN python3 -m pip install -r /stable-diffusion-webui/repositories/CodeFormer/re
 RUN python3 -m pip install -r /stable-diffusion-webui/requirements_versions.txt --prefer-binary
 
 RUN set -ex && cd stable-diffusion-webui \
-    && git clone https://gitcode.net/ranting8323/sd-webui-additional-networks.git extensions/sd-webui-additional-networks \
-    && git clone https://gitcode.net/ranting8323/sd-webui-cutoff extensions/sd-webui-cutoff \
-    && git clone https://ghproxy.com/https://github.com/toshiaki1729/stable-diffusion-webui-dataset-tag-editor.git extensions/stable-diffusion-webui-dataset-tag-editor \
-    && git clone https://ghproxy.com/https://github.com/yfszzx/stable-diffusion-webui-images-browser extensions/stable-diffusion-webui-images-browser \
-    && git clone https://gitcode.net/ranting8323/stable-diffusion-webui-wd14-tagger.git extensions/stable-diffusion-webui-wd14-tagger \
-    && git clone https://gitcode.net/overbill1683/stable-diffusion-webui-localization-zh_Hans.git extensions/stable-diffusion-webui-localization-zh_Hans \
-    && git clone https://gitcode.net/ranting8323/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
+    && git clone https://github.com/kohya-ss/sd-webui-additional-networks.git extensions/sd-webui-additional-networks \
+    && git clone https://github.com/hnmr293/sd-webui-cutoff.git extensions/sd-webui-cutoff \
+    && git clone https://github.com/toshiaki1729/stable-diffusion-webui-dataset-tag-editor.git extensions/stable-diffusion-webui-dataset-tag-editor \
+    && git clone https://github.com/toriato/stable-diffusion-webui-wd14-tagger.git extensions/stable-diffusion-webui-wd14-tagger \
+    && git clone https://github.com/hanamizuki-ai/stable-diffusion-webui-localization-zh_Hans.git extensions/stable-diffusion-webui-localization-zh_Hans \
+    && git clone https://github.com/DominikDoom/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
     && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet \
     && git clone https://github.com/zanllp/sd-webui-infinite-image-browsing.git extensions/sd-webui-infinite-image-browsing
 
@@ -44,4 +43,5 @@ COPY user-watch.py /stable-diffusion-webui/user-watch.py
 COPY start.sh /stable-diffusion-webui/start.sh
 
 WORKDIR /stable-diffusion-webui/
-CMD ["python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access"]
+CMD ["python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access", \
+    "--ui-config-file=/stable-diffusion-webui/ui-configs/ui-config.json", "--ui-settings-file=/stable-diffusion-webui/ui-configs/config.json"]

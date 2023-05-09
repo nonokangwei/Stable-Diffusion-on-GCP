@@ -37,8 +37,9 @@ for line in r.iter_lines(decode_unicode=True):
             os.symlink(os.path.join(mount_dir, 'models'), '/stable-diffusion-webui/models', target_is_directory = True)
             
             # webui config files
-            Path(os.path.join(mount_dir, userid, 'configs')).mkdir(parents=True, exist_ok=True)
+            # Path(os.path.join(mount_dir, userid, 'ui-configs')).mkdir(parents=True, exist_ok=True)
             # config_files_to_link = ['ui-config.json', 'config.json']
+            os.symlink(os.path.join(mount_dir, userid, 'ui-configs'), '/stable-diffusion-webui/ui-configs', target_is_directory = True)
 
             # for file in config_files_to_link:
             #     file_origin = os.path.join('/stable-diffusion-webui', file)

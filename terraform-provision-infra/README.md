@@ -50,7 +50,7 @@ follow example of us-central1-f zonal cluster with Nvdia T4 Accelerator Node
 
 ```bash
 locals {
-  project_id     = "PROJECT_ID"
+  project_id       = "PROJECT_ID"
   region           = "us-central1"
   filestore_zone   = "us-central1-f"   # Filestore location must be same region or zone with gke
   cluster_location = "us-central1-f"   # GKE Cluster location

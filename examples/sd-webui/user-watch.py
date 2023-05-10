@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 
 def restart_proc():
-    cmd_str = """ps -ef | grep python | egrep 'webui.py|launch.py' | grep -v grep"""
+    cmd_str = """ps -ef | egrep 'python3|python' | egrep 'webui.py|launch.py' | grep -v grep"""
     try:    
         # iterating through each instance of the process
         for line in os.popen(cmd_str):

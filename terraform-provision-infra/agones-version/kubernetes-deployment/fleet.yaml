@@ -31,15 +31,11 @@ spec:
             image: waangjie/stable-diffusion-webui:inferencev1
             command: ["/bin/sh", "start.sh"]
             volumeMounts:
-            - mountPath: /stable-diffusion-webui/models
-              name: stable-diffusion-storage
-              subPath: models
-            - mountPath: /result
-              name: stable-diffusion-storage
-              subPath: result
+            - name: stable-diffusion-storage
+              mountPath: "/stable-diffusion-webui/outputs/"
             resources:
               limits:
-                nvidia.com/gpu: 1
+                nvidia.com/gpu: "1"
           volumes:
             - name: stable-diffusion-storage
               persistentVolumeClaim:

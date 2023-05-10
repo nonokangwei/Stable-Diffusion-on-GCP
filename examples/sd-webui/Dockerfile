@@ -40,6 +40,7 @@ RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-contro
 EXPOSE 7860
 
 COPY user-watch.py /stable-diffusion-webui/user-watch.py
+COPY prelogin.py /stable-diffusion-webui/prelogin.py
 COPY start.sh /stable-diffusion-webui/start.sh
 COPY *.json /stable-diffusion-webui/
 

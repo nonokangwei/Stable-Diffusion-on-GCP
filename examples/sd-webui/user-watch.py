@@ -3,7 +3,35 @@ import shutil
 import requests
 import time
 import os
+import signal
+import subprocess
 from pathlib import Path
+
+def restart_proc():
+    cmd_str = """ps -ef | grep python | egrep 'webui.py|launch.py' | grep -v grep"""
+    try:    
+        # iterating through each instance of the process
+        for line in os.popen(cmd_str):
+            fields = line.split()
+                
+            # extracting Process ID from the output
+            pid = fields[1]
+                
+            # terminating process
+            print(int(pid), signal.SIGKILL)
+            os.kill(int(pid), signal.SIGKILL)
+        print("Process Successfully terminated")         
+    except:
+        print("Error Encountered while killing existing process")
+
+    os.chdir('/stable-diffusion-webui/')
+    cmd_str = "python webui.py --xformers --medvram --listen --enable-insecure-extension-access"
+    p = subprocess.Popen(cmd_str, preexec_fn=os.setsid, shell=True)
+    print("pid = ", p.pid)
+    time.sleep(30)
+    print("parent exit")
+    return
+
 
 sdk_http_port = os.environ['AGONES_SDK_HTTP_PORT']
 mount_dir = '/sd_dir'
@@ -49,4 +77,6 @@ for line in r.iter_lines(decode_unicode=True):
                 if os.path.isfile(file_dest):
                     os.remove(file_origin)
                     os.symlink(file_dest, file_origin, target_is_directory = False)
+
+            restart_proc()
             break

@@ -6,7 +6,7 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
 * [How-To](#how-to)
 
 ## Introduction
-   This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image. To give mutli-user isolated stable-diffussion runtime, using the [Agones](https://agones.dev/site/) as the stable-diffusion fleet management operator, Agones manage the stable diffussion runtime's lifecycle and control the autoscaling based on user demond.
+   This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image. To give mutli-user isolated stable-diffussion runtime, using the [Agones](https://agones.dev/site/) as the stable-diffusion fleet management operator, Agones manage the stable diffussion runtime's lifecycle and control the autoscaling based on user demand.
 
 ## Architecture
 ![sd-agones-arch](images/sd-agones-arch.png)
@@ -57,6 +57,10 @@ gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region ${REGION}
 ### Install GPU Driver
 ```
 kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+```
+If using lateset GPU instance, e.g. G2/L4, use below command instead for a more recent driver.
+```
+kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml
 ```
 
 ### Create Cloud Artifacts as Docker Repo
@@ -123,7 +127,7 @@ gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json
 ```
 
 ### Build nginx proxy image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua line 15 with the ip address record in previous step.
+Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua with the ip address record in previous step.
 
 ```
 cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
@@ -192,7 +196,7 @@ Give the authorized users required priviledge to access the service. [Guide](htt
 
 ### FAQ
 #### How could I troubleshooting if I get 502?
-It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually 3mins), then refresh the page.
+It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually below 3mins), then refresh the page.
 If it is much longer then expected, then
 
 1. Check stdout/stderr from pod
@@ -218,4 +222,5 @@ This is an example game server from agones, we leverage it as a game server sdk 
 The nginx+lua will call simple-game-server to indirectly interact with agones for resource allication and release.
 
 #### How can I upload file to the pod?
-Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.
+We made an example [script](./Stable-Diffusion-UI-Agones/sd-webui/extensions/stable-diffusion-webui-udload/scripts/udload.py) to work as an extension for file upload.
+Besides, you can use extensions for image browsing and downloading(https://github.com/zanllp/sd-webui-infinite-image-browsing), model/lora downloading(https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper) and more.

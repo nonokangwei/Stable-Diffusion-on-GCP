@@ -2,6 +2,9 @@
 
 This guide provides you steps to deploy a Stable Diffusion WebUI solution in your Google Cloud Project.
 
+## Languages
+[简体中文](./README_cn.md)
+
 | Folder                             | Description                                                                                                                                                                                                                                                                                   |
 |------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Stable-Diffusion-UI-Agones](./Stable-Diffusion-UI-Agones/README.md) | Demo with all the YAML files and Dockerfiles for hosting Stable Diffusion WebUI using Agones. |
@@ -86,10 +89,11 @@ Your folder structure could probably look like this in your Filestore file share
 |       |-- 00001-631481262.png
 |       |-- 00002-1301840995.png
 ```
-#### How can I upload file?
-Launch a safe sftp servers/web file server as a pod on GKE. We are going to add an example for it.
+### How can I upload file?
+We made an example [script](./Stable-Diffusion-UI-Agones/sd-webui/extensions/stable-diffusion-webui-udload/scripts/udload.py) to work as an extension for file upload.
+Besides, you can use extensions for image browsing and downloading(https://github.com/zanllp/sd-webui-infinite-image-browsing), model/lora downloading(https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper) and more.
 
-#### How can scale to zero after work?
+### How can scale to zero after work?
 HPA & Agones only allow at least one replica, to do this you will have to manually scale to 0 or delete the resource.
 e.g. For GKE,
 ```

@@ -38,8 +38,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          # - name: ZONE
-          #   value: us-central1-c
           - name: IMAGE_NAME
             value: sd-image
       containers:

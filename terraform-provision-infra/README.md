@@ -50,12 +50,13 @@ follow example of us-central1-f zonal cluster with Nvdia T4 Accelerator Node
 
 ```bash
 locals {
-  project_id       = "PROJECT_ID"
-  region           = "us-central1"
-  filestore_zone   = "us-central1-f"   # Filestore location must be same region or zone with gke
-  cluster_location = "us-central1-f"   # GKE Cluster location
-  accelerator_type = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
-  gke_num_nodes    = 1
+  project_id        = "PROJECT_ID"
+  region            = "us-central1"
+  filestore_zone    = "us-central1-f" # Filestore location must be same region or zone with gke
+  cluster_location  = "us-central1-f" # GKE Cluster location
+  node_machine_type = "custom-12-49152-ext"
+  accelerator_type  = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
+  gke_num_nodes     = 1
 }
 
 ```

@@ -1,6 +1,8 @@
 echo $MY_NODE_NAME
-echo $ZONE
 echo $IMAGE_NAME
+ZONE=$(gcloud compute instances list --filter="name:$MY_NODE_NAME" --format="value(zone)")
+echo $ZONE
+
 attached=$(gcloud compute instances describe $MY_NODE_NAME --zone=$ZONE |  grep sd-lib-disk-)
 if [ "$attached" != "" ];
 then

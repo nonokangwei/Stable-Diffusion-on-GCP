@@ -23,7 +23,7 @@ spec:
             - matchExpressions:
               - key: cloud.google.com/gke-accelerator
                 operator: Exists
-      serviceAccountName: workload-identity-ksa
+      # serviceAccountName: workload-identity-ksa
       nodeSelector:
         iam.gke.io/gke-metadata-server-enabled: "true"
       initContainers:
@@ -38,8 +38,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
-          - name: ZONE
-            value: us-central1-c
+          # - name: ZONE
+          #   value: us-central1-c
           - name: IMAGE_NAME
             value: sd-image
       containers:

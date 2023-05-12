@@ -156,7 +156,7 @@ resource "kubernetes_deployment" "nginx" {
       }
       spec {
         container {
-          image = "waangjie/stable-diffusion-webui:nginx"
+          image = "${data.terraform_remote_state.gke.outputs.artifactregistry_url}/nginx:0.1"
           name  = "stable-diffusion-nginx"
           port {
             container_port = 8080
@@ -168,6 +168,7 @@ resource "kubernetes_deployment" "nginx" {
       }
     }
   }
+  depends_on = [null_resource.build_nginx_image]
 }
 
 resource "null_resource" "connect_regional_cluster" {
@@ -197,13 +198,13 @@ resource "null_resource" "node_gpu_driver" {
 
 resource "null_resource" "sample_fleet" {
   provisioner "local-exec" {
-    command = "kubectl apply -f fleet.yaml"
+    command = "export IMAGE_URL=${data.terraform_remote_state.gke.outputs.artifactregistry_url}/sd-webui:0.1 && envsubst < fleet.yaml | kubectl apply -f -"
   }
   provisioner "local-exec" {
     when    = destroy
     command = "kubectl delete -f fleet.yaml"
   }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, helm_release.agones, kubernetes_deployment.nginx]
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, helm_release.agones, kubernetes_deployment.nginx, null_resource.build_webui_image]
 }
 
 resource "null_resource" "sample_fleet__autoscaler" {
@@ -226,4 +227,25 @@ resource "null_resource" "sample_iap_ingress" {
     command = "kubectl delete -f iap-ingress.yaml"
   }
   depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, kubernetes_deployment.nginx]
+}
+
+resource "null_resource" "build_webui_image" {
+  provisioner "local-exec" {
+    command     = "gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=us-central1 -t ${data.terraform_remote_state.gke.outputs.artifactregistry_url}/sd-webui:0.1"
+    working_dir = "../../../Stable-Diffusion-UI-Agones/sd-webui/"
+  }
+}
+
+resource "null_resource" "modify_nginx_image" {
+  provisioner "local-exec" {
+    command     = "sed -i 's/$${REDIS_HOST}/redis.private.domain/g' sd.lua"
+    working_dir = "../../../Stable-Diffusion-UI-Agones/nginx/"
+  }
+}
+
+resource "null_resource" "build_nginx_image" {
+  provisioner "local-exec" {
+    command     = "gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=us-central1 -t ${data.terraform_remote_state.gke.outputs.artifactregistry_url}/nginx:0.1"
+    working_dir = "../../../Stable-Diffusion-UI-Agones/nginx/"
+  }
 }

@@ -28,7 +28,7 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: waangjie/stable-diffusion-webui:inferencev1
+            image: $IMAGE_URL
             command: ["/bin/sh", "start.sh"]
             volumeMounts:
             - mountPath: /stable-diffusion-webui/models

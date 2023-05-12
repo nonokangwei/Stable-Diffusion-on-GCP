@@ -18,7 +18,7 @@ local redis = require "resty.redis"
 local red = redis:new()
 
 red:set_timeout(1000) -- 1 second
-local ok, err = red:connect("${REDIS_HOST}", 6379)
+local ok, err = red:connect("redis.private.domain", 6379)
 if not ok then
     ngx.log(ngx.ERR, "failed to connect to redis: ", err)
     ngx.status = 500

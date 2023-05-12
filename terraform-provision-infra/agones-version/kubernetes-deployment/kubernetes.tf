@@ -187,11 +187,11 @@ resource "null_resource" "connect_zonal_cluster" {
 
 resource "null_resource" "node_gpu_driver" {
   provisioner "local-exec" {
-    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml"
   }
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml"
   }
   depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }

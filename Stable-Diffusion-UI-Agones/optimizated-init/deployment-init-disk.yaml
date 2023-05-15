@@ -29,7 +29,7 @@ spec:
         args:
         - source /runtime-lib/bin/activate;
           cp /user-watch.py /runtime-lib/stable-diffusion-webui/user-watch.py;
-          cp /start.sh /runtime-lib/stable-diffusion-webui/user-watch.py;
+          cp /start.sh /runtime-lib/stable-diffusion-webui/start.sh;
           cd /runtime-lib/stable-diffusion-webui;
           python3 launch.py --listen --xformers --enable-insecure-extension-access --no-gradio-queue
         volumeMounts:

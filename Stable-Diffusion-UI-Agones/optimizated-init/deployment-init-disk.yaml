@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stable-diffusion-deployment-final
+  labels:
+    app: stable-diffusion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stable-diffusion
+  template:
+    metadata:
+      labels:
+        app: stable-diffusion
+    spec:
+      serviceAccountName: workload-identity-ksa
+      nodeSelector:
+        iam.gke.io/gke-metadata-server-enabled: "true"
+      volumes:
+      - name: runtime-lib
+        hostPath:
+          path: /var/lib/runtime-lib
+      containers:
+      - name: stable-diffusion-webui
+        image: us-central1-docker.pkg.dev/flius-vpc-2/stable-diffusion-repo/sd-webui-final:0.1
+        imagePullPolicy: Always
+        command: ["/bin/bash", "-c"]
+        args:
+        - source /runtime-lib/bin/activate;
+          cp /user-watch.py /runtime-lib/stable-diffusion-webui/user-watch.py;
+          cp /start.sh /runtime-lib/stable-diffusion-webui/start.sh;
+          cd /runtime-lib/stable-diffusion-webui;
+          python3 launch.py --listen --xformers --enable-insecure-extension-access --no-gradio-queue
+        volumeMounts:
+          - mountPath: "/runtime-lib"
+            name: runtime-lib
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        ports:
+          - containerPort: 7860
+        env:
+          - name: MY_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        # securityContext:
+        #   privileged: true

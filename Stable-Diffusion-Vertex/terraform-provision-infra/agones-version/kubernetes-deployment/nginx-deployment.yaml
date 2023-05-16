@@ -16,8 +16,9 @@ spec:
     spec:
       containers:
       - name: stable-diffusion-nginx
-        image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-nginx:0.1
+        image: waangjie/stable-diffusion-webui:nginx
         ports:
           - containerPort: 8080
+#        imagePullPolicy: Always
       nodeSelector:
         cloud.google.com/gke-nodepool: default-pool

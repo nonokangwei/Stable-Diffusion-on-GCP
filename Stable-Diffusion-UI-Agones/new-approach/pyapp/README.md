@@ -1,3 +1,20 @@
+
+# Simple Agones allocator service
+
+## Use the dockerfile to build 
+
+```
+export REGISTRY=your-registry
+docker build . -t $REGISTRY/py-gpu-sche:0.1
+```
+
+
+## Run in Kubernetes
+
+Replace $REGISTY to your-registry
+
+```yaml
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -47,7 +64,22 @@ spec:
       serviceAccountName: py-gpu-sche
       containers:
       - name: py-gpu-sche
-        image: us-docker.pkg.dev/jscheng-cloudrun/cr/py-gpu-sche:0.3.1
+        image: $REGISTRY/py-gpu-sche:0.3.1
         ports:
         - containerPort: 8080
           protocol: TCP
+
+```
+
+## Interface
+
+- Request Method: POST
+- Request Path: /creategs
+- Request Body: {"data": {"userid": "the-user-id"}}
+
+Example:
+
+```shell
+curl -X POST -H "Content-Type: application/json" http://127.0.0.1:8001/creategs -d '{"data":{"userid":"xxx"}}'
+```
+

@@ -1,0 +1,212 @@
+{
+  "body": {
+    "header": {
+      "headers": {
+        "event_source": "OnUpdate",
+        "event_type": "gameserver.events.updated"
+      }
+    },
+    "message": {
+      "message": {
+        "body": {
+          "new_obj": {
+            "metadata": {
+              "annotations": {
+                "agones.dev/ready-container-id": "docker://db24ed91607ab66c8858ceed937195148e18e1b7205273a2e6aaff6010fff1f6",
+                "agones.dev/sdk-version": "1.9.0"
+              },
+              "creationTimestamp": "2020-10-12T16:22:26Z",
+              "finalizers": [
+                "agones.dev"
+              ],
+              "generateName": "simple-udp-7jcpl-",
+              "generation": 6,
+              "labels": {
+                "agones.dev/fleet": "simple-udp",
+                "agones.dev/gameserverset": "simple-udp-7jcpl"
+              },
+              "name": "simple-udp-7jcpl-kq267",
+              "namespace": "default",
+              "ownerReferences": [
+                {
+                  "apiVersion": "agones.dev/v1",
+                  "blockOwnerDeletion": true,
+                  "controller": true,
+                  "kind": "GameServerSet",
+                  "name": "simple-udp-7jcpl",
+                  "uid": "2c1d4ca4-aa32-4584-b866-403927a517b4"
+                }
+              ],
+              "resourceVersion": "277937",
+              "selfLink": "/apis/agones.dev/v1/namespaces/default/gameservers/simple-udp-7jcpl-kq267",
+              "uid": "038142be-5d0e-40d7-8e7b-8c44b9de6a7e"
+            },
+            "spec": {
+              "container": "simple-udp",
+              "health": {
+                "failureThreshold": 3,
+                "initialDelaySeconds": 5,
+                "periodSeconds": 5
+              },
+              "ports": [
+                {
+                  "container": "simple-udp",
+                  "containerPort": 7654,
+                  "hostPort": 7006,
+                  "name": "default",
+                  "portPolicy": "Dynamic",
+                  "protocol": "UDP"
+                }
+              ],
+              "scheduling": "Packed",
+              "sdkServer": {
+                "grpcPort": 9357,
+                "httpPort": 9358,
+                "logLevel": "Info"
+              },
+              "template": {
+                "metadata": {
+                  "creationTimestamp": null
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "gcr.io/agones-images/udp-server:0.21",
+                      "name": "simple-udp",
+                      "resources": {
+                        "limits": {
+                          "cpu": "20m",
+                          "memory": "64Mi"
+                        },
+                        "requests": {
+                          "cpu": "20m",
+                          "memory": "64Mi"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "status": {
+              "address": "192.168.0.11",
+              "nodeName": "arena.local",
+              "players": {
+                "capacity": 0,
+                "count": 0,
+                "ids": null
+              },
+              "ports": [
+                {
+                  "name": "default",
+                  "port": 7006
+                }
+              ],
+              "reservedUntil": null,
+              "state": "Ready"
+            }
+          },
+          "old_obj": {
+            "metadata": {
+              "annotations": {
+                "agones.dev/ready-container-id": "docker://db24ed91607ab66c8858ceed937195148e18e1b7205273a2e6aaff6010fff1f6",
+                "agones.dev/sdk-version": "1.9.0"
+              },
+              "creationTimestamp": "2020-10-12T16:22:26Z",
+              "finalizers": [
+                "agones.dev"
+              ],
+              "generateName": "simple-udp-7jcpl-",
+              "generation": 6,
+              "labels": {
+                "agones.dev/fleet": "simple-udp",
+                "agones.dev/gameserverset": "simple-udp-7jcpl"
+              },
+              "name": "simple-udp-7jcpl-kq267",
+              "namespace": "default",
+              "ownerReferences": [
+                {
+                  "apiVersion": "agones.dev/v1",
+                  "blockOwnerDeletion": true,
+                  "controller": true,
+                  "kind": "GameServerSet",
+                  "name": "simple-udp-7jcpl",
+                  "uid": "2c1d4ca4-aa32-4584-b866-403927a517b4"
+                }
+              ],
+              "resourceVersion": "277937",
+              "selfLink": "/apis/agones.dev/v1/namespaces/default/gameservers/simple-udp-7jcpl-kq267",
+              "uid": "038142be-5d0e-40d7-8e7b-8c44b9de6a7e"
+            },
+            "spec": {
+              "container": "simple-udp",
+              "health": {
+                "failureThreshold": 3,
+                "initialDelaySeconds": 5,
+                "periodSeconds": 5
+              },
+              "ports": [
+                {
+                  "container": "simple-udp",
+                  "containerPort": 7654,
+                  "hostPort": 7006,
+                  "name": "default",
+                  "portPolicy": "Dynamic",
+                  "protocol": "UDP"
+                }
+              ],
+              "scheduling": "Packed",
+              "sdkServer": {
+                "grpcPort": 9357,
+                "httpPort": 9358,
+                "logLevel": "Info"
+              },
+              "template": {
+                "metadata": {
+                  "creationTimestamp": null
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "gcr.io/agones-images/udp-server:0.21",
+                      "name": "simple-udp",
+                      "resources": {
+                        "limits": {
+                          "cpu": "20m",
+                          "memory": "64Mi"
+                        },
+                        "requests": {
+                          "cpu": "20m",
+                          "memory": "64Mi"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "status": {
+              "address": "192.168.0.11",
+              "nodeName": "arena.local",
+              "players": {
+                "capacity": 0,
+                "count": 0,
+                "ids": null
+              },
+              "ports": [
+                {
+                  "name": "default",
+                  "port": 7006
+                }
+              ],
+              "reservedUntil": null,
+              "state": "Ready"
+            }
+          }
+        }
+      },
+      "source": "OnUpdate",
+      "type": "gameserver.events.updated"
+    }
+  }
+}

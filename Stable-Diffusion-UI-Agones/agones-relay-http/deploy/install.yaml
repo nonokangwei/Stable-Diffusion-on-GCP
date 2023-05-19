@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: agones-relay-http
+  labels:
+    app: agones-relay-http
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agones-relay-http
+  labels:
+    app: agones-relay-http
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["agones.dev"]
+    resources: ["gameservers","fleets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agones-relay-http
+  labels:
+    app: agones-relay-http
+subjects:
+  - kind: User
+    name: system:serviceaccount:default:agones-relay-http
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agones-relay-http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: agones-relay-http
+  name: agones-relay-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agones-relay-http
+  template:
+    metadata:
+      labels:
+        app: agones-relay-http
+    spec:
+      serviceAccountName: agones-relay-http
+      containers:
+        - image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/agones-relay-http:0.2
+          name: relay-http
+          args:
+            # - --sync-period=15s
+#            Use specific paths if that is required
+#            - --on-add-url=http://www.myendpoint.com/onadd
+#            - --on-update-url=http://www.myendpoint.com/onupdate
+#            - --on-delete-url=http://www.myendpoint.com/ondelete
+            - --on-event-url=http://us-central1-project-kangwe-poc.cloudfunctions.net/agones_listener_http
+            - --verbose
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "0.1"
+              memory: "50Mi"
+            limits:
+              cpu: "1"
+              memory: "100Mi"
+      nodeSelector:
+        cloud.google.com/gke-nodepool: default-pool

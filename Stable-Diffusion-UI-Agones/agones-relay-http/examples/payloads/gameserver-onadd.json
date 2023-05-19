@@ -1,0 +1,106 @@
+{
+  "body": {
+    "header": {
+      "headers": {
+        "event_source": "OnAdd",
+        "event_type": "gameserver.events.added"
+      }
+    },
+    "message": {
+      "message": {
+        "body": {
+          "metadata": {
+            "annotations": {
+              "agones.dev/sdk-version": "1.9.0"
+            },
+            "creationTimestamp": "2020-10-12T16:27:01Z",
+            "finalizers": [
+              "agones.dev"
+            ],
+            "generateName": "simple-udp-7jcpl-",
+            "generation": 1,
+            "labels": {
+              "agones.dev/fleet": "simple-udp",
+              "agones.dev/gameserverset": "simple-udp-7jcpl"
+            },
+            "name": "simple-udp-7jcpl-5qrbc",
+            "namespace": "default",
+            "ownerReferences": [
+              {
+                "apiVersion": "agones.dev/v1",
+                "blockOwnerDeletion": true,
+                "controller": true,
+                "kind": "GameServerSet",
+                "name": "simple-udp-7jcpl",
+                "uid": "2c1d4ca4-aa32-4584-b866-403927a517b4"
+              }
+            ],
+            "resourceVersion": "278179",
+            "selfLink": "/apis/agones.dev/v1/namespaces/default/gameservers/simple-udp-7jcpl-5qrbc",
+            "uid": "61a7780c-2e89-4ab1-9455-196dc24f196c"
+          },
+          "spec": {
+            "container": "simple-udp",
+            "health": {
+              "failureThreshold": 3,
+              "initialDelaySeconds": 5,
+              "periodSeconds": 5
+            },
+            "ports": [
+              {
+                "container": "simple-udp",
+                "containerPort": 7654,
+                "name": "default",
+                "portPolicy": "Dynamic",
+                "protocol": "UDP"
+              }
+            ],
+            "scheduling": "Packed",
+            "sdkServer": {
+              "grpcPort": 9357,
+              "httpPort": 9358,
+              "logLevel": "Info"
+            },
+            "template": {
+              "metadata": {
+                "creationTimestamp": null
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "image": "gcr.io/agones-images/udp-server:0.21",
+                    "name": "simple-udp",
+                    "resources": {
+                      "limits": {
+                        "cpu": "20m",
+                        "memory": "64Mi"
+                      },
+                      "requests": {
+                        "cpu": "20m",
+                        "memory": "64Mi"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "status": {
+            "address": "",
+            "nodeName": "",
+            "players": {
+              "capacity": 0,
+              "count": 0,
+              "ids": null
+            },
+            "ports": null,
+            "reservedUntil": null,
+            "state": "PortAllocation"
+          }
+        }
+      },
+      "source": "OnAdd",
+      "type": "gameserver.events.added"
+    }
+  }
+}

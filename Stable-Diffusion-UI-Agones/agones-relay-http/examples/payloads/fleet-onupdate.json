@@ -1,0 +1,166 @@
+{
+  "body": {
+    "header": {
+      "headers": {
+        "event_source": "OnUpdate",
+        "event_type": "fleet.events.updated"
+      }
+    },
+    "message": {
+      "message": {
+        "body": {
+          "new_obj": {
+            "metadata": {
+              "annotations": {
+                "agones.dev/sdk-version": "1.9.0",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"agones.dev/v1\",\"kind\":\"Fleet\",\"metadata\":{\"annotations\":{},\"name\":\"simple-udp\",\"namespace\":\"default\"},\"spec\":{\"replicas\":2,\"template\":{\"spec\":{\"ports\":[{\"containerPort\":7654,\"name\":\"default\"}],\"template\":{\"spec\":{\"containers\":[{\"image\":\"gcr.io/agones-images/udp-server:0.21\",\"name\":\"simple-udp\",\"resources\":{\"limits\":{\"cpu\":\"20m\",\"memory\":\"64Mi\"},\"requests\":{\"cpu\":\"20m\",\"memory\":\"64Mi\"}}}]}}}}}}\n"
+              },
+              "creationTimestamp": "2020-10-12T16:22:25Z",
+              "generation": 1,
+              "name": "simple-udp",
+              "namespace": "default",
+              "resourceVersion": "277905",
+              "selfLink": "/apis/agones.dev/v1/namespaces/default/fleets/simple-udp",
+              "uid": "42a08aac-6bb0-4f1a-8713-34b0681fb24e"
+            },
+            "spec": {
+              "replicas": 2,
+              "scheduling": "Packed",
+              "strategy": {
+                "rollingUpdate": {
+                  "maxSurge": "25%",
+                  "maxUnavailable": "25%"
+                },
+                "type": "RollingUpdate"
+              },
+              "template": {
+                "metadata": {
+                  "creationTimestamp": null
+                },
+                "spec": {
+                  "health": {},
+                  "ports": [
+                    {
+                      "containerPort": 7654,
+                      "name": "default"
+                    }
+                  ],
+                  "sdkServer": {},
+                  "template": {
+                    "metadata": {
+                      "creationTimestamp": null
+                    },
+                    "spec": {
+                      "containers": [
+                        {
+                          "image": "gcr.io/agones-images/udp-server:0.21",
+                          "name": "simple-udp",
+                          "resources": {
+                            "limits": {
+                              "cpu": "20m",
+                              "memory": "64Mi"
+                            },
+                            "requests": {
+                              "cpu": "20m",
+                              "memory": "64Mi"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "status": {
+              "allocatedReplicas": 0,
+              "players": {
+                "capacity": 0,
+                "count": 0
+              },
+              "readyReplicas": 0,
+              "replicas": 2,
+              "reservedReplicas": 0
+            }
+          },
+          "old_obj": {
+            "metadata": {
+              "annotations": {
+                "agones.dev/sdk-version": "1.9.0",
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"agones.dev/v1\",\"kind\":\"Fleet\",\"metadata\":{\"annotations\":{},\"name\":\"simple-udp\",\"namespace\":\"default\"},\"spec\":{\"replicas\":2,\"template\":{\"spec\":{\"ports\":[{\"containerPort\":7654,\"name\":\"default\"}],\"template\":{\"spec\":{\"containers\":[{\"image\":\"gcr.io/agones-images/udp-server:0.21\",\"name\":\"simple-udp\",\"resources\":{\"limits\":{\"cpu\":\"20m\",\"memory\":\"64Mi\"},\"requests\":{\"cpu\":\"20m\",\"memory\":\"64Mi\"}}}]}}}}}}\n"
+              },
+              "creationTimestamp": "2020-10-12T16:22:25Z",
+              "generation": 1,
+              "name": "simple-udp",
+              "namespace": "default",
+              "resourceVersion": "277880",
+              "selfLink": "/apis/agones.dev/v1/namespaces/default/fleets/simple-udp",
+              "uid": "42a08aac-6bb0-4f1a-8713-34b0681fb24e"
+            },
+            "spec": {
+              "replicas": 2,
+              "scheduling": "Packed",
+              "strategy": {
+                "rollingUpdate": {
+                  "maxSurge": "25%",
+                  "maxUnavailable": "25%"
+                },
+                "type": "RollingUpdate"
+              },
+              "template": {
+                "metadata": {
+                  "creationTimestamp": null
+                },
+                "spec": {
+                  "health": {},
+                  "ports": [
+                    {
+                      "containerPort": 7654,
+                      "name": "default"
+                    }
+                  ],
+                  "sdkServer": {},
+                  "template": {
+                    "metadata": {
+                      "creationTimestamp": null
+                    },
+                    "spec": {
+                      "containers": [
+                        {
+                          "image": "gcr.io/agones-images/udp-server:0.21",
+                          "name": "simple-udp",
+                          "resources": {
+                            "limits": {
+                              "cpu": "20m",
+                              "memory": "64Mi"
+                            },
+                            "requests": {
+                              "cpu": "20m",
+                              "memory": "64Mi"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "status": {
+              "allocatedReplicas": 0,
+              "players": {
+                "capacity": 0,
+                "count": 0
+              },
+              "readyReplicas": 0,
+              "replicas": 0,
+              "reservedReplicas": 0
+            }
+          }
+        }
+      },
+      "source": "OnUpdate",
+      "type": "fleet.events.updated"
+    }
+  }
+}

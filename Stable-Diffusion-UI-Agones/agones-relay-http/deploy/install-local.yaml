@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: agones-relay-http
+  labels:
+    app: agones-relay-http
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agones-relay-http
+  labels:
+    app: agones-relay-http
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["agones.dev"]
+    resources: ["gameservers","fleets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agones-relay-http
+  labels:
+    app: agones-relay-http
+subjects:
+  - kind: User
+    name: system:serviceaccount:default:agones-relay-http
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agones-relay-http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: agones-relay-http
+  name: agones-relay-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agones-relay-http
+  template:
+    metadata:
+      labels:
+        app: agones-relay-http
+    spec:
+      serviceAccountName: agones-relay-http
+      containers:
+        - image: octops/agones-relay-http:${TAG}
+          name: relay-http
+          args:
+            - --sync-period=15s
+            - --on-add-url=${WEBHOOK_URL}
+            - --on-update-url=${WEBHOOK_URL}
+            - --on-delete-url=${WEBHOOK_URL}
+            - --verbose
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "0.1"
+              memory: "50Mi"
+            limits:
+              cpu: "1"
+              memory: "100Mi"

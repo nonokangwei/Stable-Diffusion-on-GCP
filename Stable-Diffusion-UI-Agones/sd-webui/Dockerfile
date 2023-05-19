@@ -1,5 +1,4 @@
-# FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 RUN set -ex && \
     apt update && \

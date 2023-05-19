@@ -280,16 +280,18 @@ Besides, you can use extensions for image browsing and downloading(https://githu
 
 5. Directory Structure in NFS
 Please refer this directory struction to provison NFS, these settings will be used for Stable-Diffusion-WebUI Golden config, all the stable-diffusion-pod created will be init with the config from here, then any change from customer will be persisted in its own foler.
---/
---/sd-config
-    --/config.json
-    --/ui-config.json
---/extensions
-    --
-    --
-    --..
---/<username>
-    --/config.json
-    --/ui-config.json
-    --/extentions
-    --/output
+```
+| --/
+| --/sd-config
+|    --/config.json
+|    --/ui-config.json
+| --/extensions
+|    --
+|    --
+|    --..
+| --/<username>
+|    --/config.json
+|    --/ui-config.json
+|    --/extentions
+|    --/output
+```

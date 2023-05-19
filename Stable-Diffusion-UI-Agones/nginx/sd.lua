@@ -27,90 +27,54 @@ if not ok then
 end
 
 local secs = ngx.time()
+local sub_key = string.gsub(key, ":", ".")
+local key_uid = string.gsub(sub_key, "@", ".")
 
-local lookup_res, err = red:hget(key, "target")
+local lookup_res, err = red:hget(key_uid, "target")
+local gs_name_res, err = red:hget(key_uid, "gsname")
 print(lookup_res)
+print(gs_name_res)
 
-if lookup_res == ngx.null then                
+if lookup_res == ngx.null and gs_name_res ~= "Ready" then                
     local http = require "resty.http"
     local httpc = http.new()
-    ngx.log(ngx.INFO, [[{"namespace": "default", "metadata": {"labels": {"user": "]] .. key .. [["}}}]])
-    local sub_key = string.gsub(key, ":", ".")
-    local final_uid = string.gsub(sub_key, "@", ".")
+    ngx.log(ngx.INFO, [[{"namespace": "default", "metadata": {"labels": {"user": "]] .. key_uid .. [["}}}]])
+    -- local sub_key = string.gsub(key, ":", ".")
+    -- local final_uid = string.gsub(sub_key, "@", ".")
+    -- local res, err = httpc:request_uri(
+    --     "http://agones-allocator.agones-system.svc.cluster.local:443/gameserverallocation",
+    --         {
+    --         method = "POST",
+    --         body = [[{"namespace": "default", "metadata": {"labels": {"user": "]] .. final_uid .. [["}}}]],
+    --       }
+    -- )
     local res, err = httpc:request_uri(
-        "http://agones-allocator.agones-system.svc.cluster.local:443/gameserverallocation",
+        "https://us-central1-project-kangwe-poc.cloudfunctions.net/agones_gs_backend?username="..key_uid,
             {
-            method = "POST",
-            body = [[{"namespace": "default", "metadata": {"labels": {"user": "]] .. final_uid .. [["}}}]],
+            method = "GET",
           }
     )
 
     local cjson = require "cjson"
     local resp_data = cjson.decode(res.body)
-    local host = resp_data["address"]
-    if host == nil then
-        ngx.header.content_type = "text/html"
-        ngx.say([[<h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Too many users, Please try later! We are cooking for you!</h1><img src="images/coffee-clock.jpg" alt="Take a cup of coffea" />]])
-        return
-    end
+    local gs_name = resp_data["gs_name"]
 
-    local sd_port = resp_data["ports"][2]["port"]
-    local gs_port = resp_data["ports"][1]["port"]
-    
-    if string.match(host, "internal") ~= nil then
-        local resolver = require "resty.dns.resolver"
-        local dns = "169.254.169.254"
-
-        local r, err = resolver:new{
-            nameservers = {dns},
-            retrans = 3,  -- 3 retransmissions on receive timeout
-            timeout = 1000,  -- 1 sec
-        }
-
-        if not r then
-            ngx.log(ngx.ERR, "failed to instantiate the resolver!")
-            ngx.status = 400
-            ngx.say("failed to instantiate the resolver!")
-            return ngx.exit(400)
-        end
-
-        local answers, err = r:query(host)
-        if not answers then
-            ngx.log(ngx.ERR, "failed to query the DNS server!")
-            ngx.status = 400
-            ngx.say("failed to query the DNS server!")
-            return ngx.exit(400)
-        end
-
-        if answers.errcode then
-            ngx.log(ngx.ERR, "dns server returned error code!")
-            ngx.status = 400
-            ngx.say("dns server returned error code!")
-            return ngx.exit(400)
-        end
-
-        for i, ans in ipairs(answers) do
-            if ans.address then
-                ngx.log(ngx.INFO, ans.address)
-                host = ans.address
-            end
-        end
-    end
-
-    ngx.var.target = host .. ":" .. sd_port
-    ngx.log(ngx.INFO, "set redis ", ngx.var.target)
---     print("set redis ", ngx.var.target)
-
-    ok, err = red:hset(key, "target", ngx.var.target, "port", host .. ":" .. gs_port, "lastaccess", secs)
+    ok, err = red:hset(final_uid, "gsname", gs_name, "lastaccess", secs)
     if not ok then
 --         print("fail to set redis key")
         ngx.log(ngx.ERR, "failed to hset: ", err)
         ngx.say("failed to hset: ", err)
         return
     end
+
+    ngx.header.content_type = "text/html"
+    ngx.say([[<h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Too many users, Please try later! We are cooking for you!</h1><img src="images/coffee-clock.jpg" alt="Take a cup of coffea" />]])
+    return
 else
     ngx.var.target = lookup_res
-    ok, err = red:hset(key, "lastaccess", secs)
+    -- local sub_key = string.gsub(key, ":", ".")
+    -- local final_uid = string.gsub(sub_key, "@", ".")
+    ok, err = red:hset(key_uid, "lastaccess", secs)
     if not ok then
 --         print("fail to set redis key")
         ngx.log(ngx.ERR, "failed to hset: ", err)

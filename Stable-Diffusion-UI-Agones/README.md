@@ -31,7 +31,7 @@ VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
 
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
+    --no-enable-basic-auth --cluster-version "1.24.11-gke.1000" --release-channel "None" \
     --machine-type "e2-standard-2" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
@@ -42,7 +42,7 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --addons HorizontalPodAutoscaling,HttpLoadBalancing,GcePersistentDiskCsiDriver,GcpFilestoreCsiDriver \
     --autoscaling-profile optimize-utilization
 
-gcloud beta container --project ${PROJECT_ID} node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
+gcloud beta container --project ${PROJECT_ID} node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
 ```
 **NOTE: If you are creating a private GKE cluster, setup a firewall rule to allow**
 1. all internal CIDR(10.0.0.0/8, 172.16.0.0/16, 192.168.0.0/24). Specifically, CIDR range for pod, but using all internal CIDR will be easier.
@@ -135,12 +135,20 @@ docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-ngin
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 ```
 
+### Build simple game server image
+Build image with provided Dockerfile, push to repo in Cloud Artifacts.
+```
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-sidecar
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/simple-game-server:0.1
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/simple-game-server:0.1
+```
+
 ### Deploy stable-diffusion agones deployment
 Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
 ```
 kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
+<!-- kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml -->
+<!-- kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml -->
 ```
 
 ### Prepare Cloud Function Serverless VPC Access
@@ -166,6 +174,51 @@ gcloud scheduler jobs create http sd-agones-cruiser \
     --schedule="*/5 * * * *" \
     --uri=${FUNCTION_URL}
 ```
+
+### Deploy Cloud Function GS Controller
+This function is used to handle Stable Diffusion POD Creation request, when the user init the access to the env, it will trigger this function to create a Stable Diffusion POD.
+Record the GKE Cluster API Server Endpoint IP address
+```
+gcloud container clusters describe sdagonesnew --region us-central1 --format=json | jq .privateClusterConfig.publicEndpoint
+```
+Update the gs.yaml file with the Stable-Diffusion-WebUI docker image url and simple-game-server docker image url
+```
+cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function-gs-controller/localpackage
+# then change the image url in the gs.yaml file
+```
+Create the GS Controller Function, please replace the ${K8S_ENDPOINT} with the Endpoint IP address in last step.
+```
+cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function-gs-controller
+gcloud functions deploy agones_gs_backend --runtime python310 --trigger-http --allow-unauthenticated --region=${REGION} --set-env-vars=k8s_endpoint=${K8S_ENDPOINT}
+```
+
+### Deploy Cloud Function State Controller
+This function is used to manage Stable Diffusion POD State, it bases on agones-relay-http event, when the Stable Diffusion POD State(internal state not kubernete pod state) change, this function will act on the change event, and update the related redis values.
+```
+cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function-state-controller
+gcloud functions deploy agones_listener_http --runtime python310 --trigger-http --allow-unauthenticated --region=${REGION} --vpc-connector=sd-agones-connector --egress-settings=private-ranges-only --set-env-vars=REDIS_HOST=${REDIS_HOST}
+```
+
+### Deploy agones-http-relay
+This controller is used to relay the Stable Diffusion POD State Change Event to the Cloud Function State Controller.
+Build the image
+```
+cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-relay-http
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/agones-relay-http:0.1
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/agones-relay-http:0.1
+```
+Get the Cloud Function State Controller URL
+```
+gcloud functions describe agones_listener_http --region us-central1 --format=json | jq .httpsTrigger.url
+```
+Update the deployment file then deploy it
+```
+cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-relay-http/deploy
+# update the install.yaml
+# change the  <agones-relay-http-image> to the image you build in previous step
+# change the <cloud-function-state-controller-url> to the cloud function state controller url
+```
+
 
 ### Deploy IAP(identity awared proxy)
 To allocate isolated stable-diffusion runtime and provide user access auth capability, using the Google Cloud IAP service as an access gateway to provide the identity check and prograge the idenity to the stable-diffusion backend.
@@ -224,3 +277,19 @@ The nginx+lua will call simple-game-server to indirectly interact with agones fo
 #### How can I upload file to the pod?
 We made an example [script](./Stable-Diffusion-UI-Agones/sd-webui/extensions/stable-diffusion-webui-udload/scripts/udload.py) to work as an extension for file upload.
 Besides, you can use extensions for image browsing and downloading(https://github.com/zanllp/sd-webui-infinite-image-browsing), model/lora downloading(https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper) and more.
+
+5. Directory Structure in NFS
+Please refer this directory struction to provison NFS, these settings will be used for Stable-Diffusion-WebUI Golden config, all the stable-diffusion-pod created will be init with the config from here, then any change from customer will be persisted in its own foler.
+--/
+--/sd-config
+    --/config.json
+    --/ui-config.json
+--/extensions
+    --
+    --
+    --..
+--/<username>
+    --/config.json
+    --/ui-config.json
+    --/extentions
+    --/output

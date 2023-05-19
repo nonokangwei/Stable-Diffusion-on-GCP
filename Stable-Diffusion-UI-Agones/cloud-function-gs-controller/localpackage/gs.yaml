@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: stable-diffusion-webui
-        image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/sd-webui:2.3
+        image: <Stable-Diffusion-WebUI-Image>
         command: ["/bin/sh", "start.sh"]
         # args: ["python3 user-watch.py & python3 webui.py --listen --xformers --enable-insecure-extension-access --no-gradio-queue"]
         volumeMounts:
@@ -46,7 +46,7 @@ spec:
         #   failureThreshold: 60
         #   periodSeconds: 10
       - name: simple-game-server
-        image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/simple-game-server:0.16
+        image: <Simple-Game-Server-Image>
         resources:
           requests:
             memory: "64Mi"

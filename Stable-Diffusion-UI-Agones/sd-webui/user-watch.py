@@ -8,7 +8,7 @@ sdk_http_port = os.environ['AGONES_SDK_HTTP_PORT']
 
 url = 'http://localhost:' + sdk_http_port + '/watch/gameserver'
 
-time.sleep(30)
+time.sleep(20)
 
 r = requests.get(url, stream=True)
 

@@ -52,7 +52,7 @@ spec:
     spec:
       serviceAccountName: agones-relay-http
       containers:
-        - image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/agones-relay-http:0.2
+        - image: <agones-relay-http-image>
           name: relay-http
           args:
             # - --sync-period=15s
@@ -60,7 +60,7 @@ spec:
 #            - --on-add-url=http://www.myendpoint.com/onadd
 #            - --on-update-url=http://www.myendpoint.com/onupdate
 #            - --on-delete-url=http://www.myendpoint.com/ondelete
-            - --on-event-url=http://us-central1-project-kangwe-poc.cloudfunctions.net/agones_listener_http
+            - --on-event-url=<cloud-function-state-controller-url>
             - --verbose
           imagePullPolicy: IfNotPresent
           resources:

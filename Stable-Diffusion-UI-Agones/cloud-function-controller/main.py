@@ -2,6 +2,7 @@ from flask import escape
 import functions_framework
 import os
 import time
+import json
 import redis
 
 @functions_framework.http
@@ -36,7 +37,7 @@ def agones_listener_http(request):
                 gs_user = request_json['body']['message']['message']['body']['metadata']['labels']['user']
                 current_time = int(time.time())
 
-                client.hmset(gs_user, {'startaccess': current_time, 'lastaccess': current_time})
+                client.hmset(gs_user, {'startaccess': current_time, 'lastaccess': current_time, 'status': 'NotReady'})
 
                 print("GS OnAdd: add gs {} {} state success!".format(gs_name, gs_status))
                 return "GS OnAdd: add gs {} {} state success!".format(gs_name, gs_status)
@@ -68,7 +69,7 @@ def agones_listener_http(request):
                 gs_port = request_json['body']['message']['message']['body']['new_obj']['status']['ports'][0]['port']
                 current_time = int(time.time())
 
-                client.hmset(gs_user, {'target': target + ":" + str(sd_port), 'port': target + ":" + str(gs_port), 'lastaccess': current_time})
+                client.hmset(gs_user, {'target': target + ":" + str(sd_port), 'port': target + ":" + str(gs_port), 'lastaccess': current_time, 'status': 'Ready'})
 
                 print("GS Update: update gs {} {} state success!".format(gs_name, gs_status))
                 return "GS Update: update gs {} {} state success!".format(gs_name, gs_status)
@@ -86,6 +87,18 @@ def agones_listener_http(request):
             try:
                 client.delete(gs_name)
                 print("GS Delete: delete gs state success!")
+
+                # Complete a structured log entry.
+                # entry = dict(
+                #     severity="NOTICE",
+                #     message="usage-stat",
+                #     # Log viewer accesses 'component' as jsonPayload.component'.
+                #     username="abc.company.com",
+                #     starttime=123,
+                #     endtime=456,
+                # )
+                # print(json.dumps(entry))  
+
                 return "GS Delete: delete gs state success!"
             except Exception as e:
                 print("GS Delete: delete gs state failed! ", e)

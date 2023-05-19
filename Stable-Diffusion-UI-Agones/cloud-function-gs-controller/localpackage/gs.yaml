@@ -1,0 +1,60 @@
+apiVersion: "agones.dev/v1"
+kind: GameServer
+metadata:
+  name: "sd-webui-"
+  labels:
+    user: abc.company.com
+spec:
+  container: simple-game-server
+  ports:
+  - name: default
+    container: simple-game-server
+    containerPort: 7654
+  - name: sd
+    container: stable-diffusion-webui
+    containerPort: 7860
+    protocol: TCP
+  template:
+    spec:
+      containers:
+      - name: stable-diffusion-webui
+        image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/sd-webui:2.3
+        command: ["/bin/sh", "start.sh"]
+        # args: ["python3 user-watch.py & python3 webui.py --listen --xformers --enable-insecure-extension-access --no-gradio-queue"]
+        volumeMounts:
+        - name: stable-diffusion-storage
+          mountPath: /result
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        # livenessProbe:
+        #   httpGet:
+        #     path: /
+        #     port: 7860
+        #   initialDelaySeconds: 
+        #   periodSeconds: 5
+        # readinessProbe:
+        #   httpGet:
+        #     path: /
+        #     port: 7860
+        #   initialDelaySeconds: 
+        #   periodSeconds: 5
+        # startupProbe:
+        #   httpGet:
+        #     path: /
+        #     port: 7860
+        #   failureThreshold: 60
+        #   periodSeconds: 10
+      - name: simple-game-server
+        image: us-central1-docker.pkg.dev/project-kangwe-poc/kwsddemo/simple-game-server:0.16
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "20m"
+          limits:
+            memory: "64Mi"
+            cpu: "20m"
+      volumes:
+        - name: stable-diffusion-storage
+          persistentVolumeClaim:
+            claimName: vol1

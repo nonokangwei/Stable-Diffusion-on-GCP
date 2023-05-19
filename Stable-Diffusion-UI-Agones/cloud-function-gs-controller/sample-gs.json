@@ -1,0 +1,40 @@
+{'apiVersion': 'agones.dev/v1', 'kind': 'GameServer', 'metadata': {'annotations': {'agones.dev/sdk-version': '1.30.0'
+        }, 'creationTimestamp': '2023-05-16T12: 11: 23Z', 'finalizers': ['agones.dev'
+        ], 'generateName': 'simple-game-server-', 'generation': 1, 'labels': {'user': 'abc.company.com'
+        }, 'managedFields': [
+            {'apiVersion': 'agones.dev/v1', 'fieldsType': 'FieldsV1', 'fieldsV1': {'f:metadata': {'f:generateName': {}, 'f:labels': {'.': {}, 'f:user': {}
+                        }
+                    }, 'f:spec': {'.': {}, 'f:container': {}, 'f:immutableReplicas': {}, 'f:ports': {}, 'f:template': {'.': {}, 'f:spec': {'.': {}, 'f:containers': {}
+                            }
+                        }
+                    }
+                }, 'manager': 'OpenAPI-Generator', 'operation': 'Update', 'time': '2023-05-16T12: 11: 23Z'
+            }
+        ], 'name': 'simple-game-server-w6rsn', 'namespace': 'default', 'resourceVersion': '43627831', 'uid': '2eb378aa-c573-46e6-b514-4b504e3c85c3'
+    }, 'spec': {'container': 'simple-game-server', 'eviction': {'safe': 'Never'
+        }, 'health': {'failureThreshold': 3, 'initialDelaySeconds': 5, 'periodSeconds': 5
+        }, 'immutableReplicas': 1, 'ports': [
+            {'container': 'simple-game-server', 'containerPort': 7654, 'name': 'default', 'portPolicy': 'Dynamic', 'protocol': 'UDP'
+            },
+            {'container': 'stable-diffusion-webui', 'containerPort': 7654, 'name': 'sd', 'portPolicy': 'Dynamic', 'protocol': 'UDP'
+            }
+        ], 'scheduling': 'Packed', 'sdkServer': {'grpcPort': 9357, 'httpPort': 9358, 'logLevel': 'Info'
+        }, 'template': {'metadata': {'creationTimestamp': None
+            }, 'spec': {'containers': [
+                    {'image': 'us-docker.pkg.dev/agones-images/examples/simple-game-server: 0.15', 'name': 'simple-game-server', 'resources': {'limits': {'cpu': '20m', 'memory': '64Mi'
+                            }, 'requests': {'cpu': '20m', 'memory': '64Mi'
+                            }
+                        }
+                    },
+                    {'image': 'us-docker.pkg.dev/agones-images/examples/simple-game-server: 0.15', 'name': 'stable-diffusion-webui', 'resources': {'limits': {'cpu': '20m', 'memory': '64Mi'
+                            }, 'requests': {'cpu': '20m', 'memory': '64Mi'
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }, 'status': {'address': '', 'eviction': {'safe': 'Never'
+        }, 'immutableReplicas': 1, 'nodeName': '', 'players': None, 'ports': None, 'reservedUntil': None, 'state': 'PortAllocation'
+    }
+}

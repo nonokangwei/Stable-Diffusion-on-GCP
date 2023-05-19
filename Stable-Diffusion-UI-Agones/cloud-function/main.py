@@ -4,6 +4,7 @@ import redis
 import time
 import os
 import socket
+import json
 
 @functions_framework.http
 def redis_http(request):
@@ -21,13 +22,14 @@ def redis_http(request):
 
     while cursor != 0:
         try:
-            cursor, keys = client.scan(cursor=cursor)
+            cursor, keys = client.scan(cursor=cursor, _type="HASH")
         except Exception as e:
             print("please check your redis connection setting!")
             return "please check your redis connection setting!"
         
         for key in keys:
             result = client.hgetall(key)
+            start_access = int(result[b'startaccess'].decode('utf-8'))
             last_access = int(result[b'lastaccess'].decode('utf-8'))
             current_time = int(time.time())
             if current_time - last_access >= time_interval:
@@ -59,6 +61,16 @@ def redis_http(request):
                     print("failed to close runtime on {}:{}!".format(UDP_IP, UDP_PORT))
                     return "failed to close runtime on {}:{}!".format(UDP_IP, UDP_PORT)
                 try:
+                    # Complete a structured log entry.
+                    entry = dict(
+                        severity="NOTICE",
+                        tagmark="usage-stat",
+                        # Log viewer accesses 'component' as jsonPayload.component'.
+                        username=key.decode('utf-8'),
+                        starttime=start_access,
+                        endtime=last_access,
+                    )
+                    print(json.dumps(entry))  
                     client.delete(key)
                 except Exception as e:
                     print(e)

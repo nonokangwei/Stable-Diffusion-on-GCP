@@ -25,8 +25,25 @@ for line in r.iter_lines(decode_unicode=True):
             src = '/result/' + response['result']['object_meta']['labels']['user'] + '/outputs'
             if os.path.isdir(src):
                 os.symlink(src, '/stable-diffusion-webui/outputs', target_is_directory = True)
-                break
             else :
                 os.makedirs(src)
                 os.symlink(src, '/stable-diffusion-webui/outputs', target_is_directory = True)
-                break
+
+            src = '/result/' + response['result']['object_meta']['labels']['user'] + '/extensions'
+            if os.path.isdir(src):
+                shutil.rmtree('/stable-diffusion-webui/extensions')
+                os.symlink(src, '/stable-diffusion-webui/extensions', target_is_directory = True)
+            else :
+                shutil.copytree('/result/extensions', src)
+                shutil.rmtree('/stable-diffusion-webui/extensions')
+                os.symlink(src, '/stable-diffusion-webui/extensions', target_is_directory = True)
+            
+            src = '/result/' + response['result']['object_meta']['labels']['user'] + '/sd-config'
+            if os.path.isdir(src):
+                os.symlink(src + '/config.json', '/stable-diffusion-webui/config.json')
+                os.symlink(src + '/ui-config.json', '/stable-diffusion-webui/ui-config.json')
+            else:
+                shutil.copytree('/result/sd-config', src)
+                os.symlink(src + '/config.json', '/stable-diffusion-webui/config.json')
+                os.symlink(src + '/ui-config.json', '/stable-diffusion-webui/ui-config.json')
+            break

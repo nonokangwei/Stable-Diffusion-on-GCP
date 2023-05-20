@@ -295,3 +295,5 @@ Please refer this directory struction to provison NFS, these settings will be us
 |    --/extentions
 |    --/output
 ```
+6. Accelerate the Stable-Diffusion-WebUI Load Time
+Customer can leverage the low-priority-class balloon POD to trigger the Node-Pool pre-provision, then it will help you to avoid the node provision and image pulling time. you can refer the folder /Stable-Diffusion-UI-Agones/agones, in the folder there is PriorityClass definition yaml(priorityclasses.yaml) and balloon POD deployment yaml(balloon_deployment.yaml), how it work detail you can checkout(https://cloud.google.com/kubernetes-engine/docs/how-to/capacity-provisioning). Note: this method can help to improve the start time but it will take extra cost.

@@ -1,26 +1,26 @@
 # Stable-Diffusion on Agones Implementation Guide
 
-This guide give simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for model and output files. For convinent multi-user stable-diffusion runtime management, using the [Agones](https://agones.dev/site/) as the runtime management operator, each isolated stable-diffusion runtime is hosted in an isolated POD, each authorized user will be allocated a dedicated POD. User can just follow the step have your stable diffusion model running.
+This guide gives simple steps for stable-diffusion users to launch a stable diffusion deployment by using GCP GKE service, and using Filestore as shared storage for models and output files. For convinent multi-user stable-diffusion runtime management, we used [Agones](https://agones.dev/site/) as the runtime management operator, each isolated stable-diffusion runtime is hosted in an isolated POD, each authorized user will be allocated a dedicated POD. User can just follow the following steps to have your stable diffusion model running.
 
 * [Introduction](#Introduction)
 * [How-To](#how-to)
 
 ## Introduction
-   This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image. To give mutli-user isolated stable-diffussion runtime, using the [Agones](https://agones.dev/site/) as the stable-diffusion fleet management operator, Agones manage the stable diffussion runtime's lifecycle and control the autoscaling based on user demand.
+   This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project uses Cloud Build to help you quickly build a docker image with your stable diffusion model, then you can make a deployment base on the docker image. To give mutli-user isolated stable-diffussion runtime, we used [Agones](https://agones.dev/site/) as the stable-diffusion fleet management operator. Agones manages the stable diffussion runtime's lifecycle and control the autoscaling based on user demand.
 
 ## Architecture
 ![sd-agones-arch](images/sd-agones-arch.png)
 
 ## How To
-you can use the cloud shell as the run time to do below steps.
+you can use the cloud shell as the run time to perform below steps.
 ### Before you begin
-1. make sure you have an available GCP project for your deployment
-2. Enable the required service API using [cloud shell](https://cloud.google.com/shell/docs/run-gcloud-commands)
+1. Make sure you have an available GCP project with a VPC network for your deployment.
+2. Enable the required service API using [cloud shell](https://cloud.google.com/shell/docs/run-gcloud-commands):
 ```
 gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com vpcaccess.googleapis.com redis.googleapis.com cloudscheduler.googleapis.com
 ```
 ### Create GKE Cluster
-do the following step using the cloud shell. This guide using the T4 GPU node as the VM host, by your choice you can change the node type with [other GPU instance type](https://cloud.google.com/compute/docs/gpus).
+Run the following steps in Cloud Shell. This guide uses the T4 GPU node as the VM host. You can change the node type to [other GPU instance types](https://cloud.google.com/compute/docs/gpus) based on your needs.
 In this guide we also enabled [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for models/outputs sharing.
 
 ```
@@ -31,7 +31,7 @@ VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
 
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
+    --no-enable-basic-auth --cluster-version "1.25.8-gke.500" --release-channel "None" \
     --machine-type "e2-standard-2" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
@@ -45,9 +45,9 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
 gcloud beta container --project ${PROJECT_ID} node-pools create "gpu-pool" --cluster ${GKE_CLUSTER_NAME} --region ${REGION} --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1" --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" --spot --enable-autoscaling --total-min-nodes "0" --total-max-nodes "6" --location-policy "ANY" --enable-autoupgrade --enable-autorepair --max-surge-upgrade 1 --max-unavailable-upgrade 0 --max-pods-per-node "110" --num-nodes "0"
 ```
 **NOTE: If you are creating a private GKE cluster, setup a firewall rule to allow**
-1. all internal CIDR(10.0.0.0/8, 172.16.0.0/16, 192.168.0.0/24). Specifically, CIDR range for pod, but using all internal CIDR will be easier.
+1. all internal CIDR(10.0.0.0/8, 172.16.0.0/16, 192.168.0.0/24). Specifically, CIDR range for pod, but using all internal CIDR would be easier.
 2. for TCP port 443/8080/8081 & 7000-8000 and UDP port 7000-8000
-3. for source tag as gke node tag, e.g. gke-gke-01-7267dc32-node, you can find it in your VM console.
+3. set source tag as gke node tag, e.g. gke-gke-01-7267dc32-node, you can find it in your VM console.
 
 ### Get credentials of GKE cluster
 ```

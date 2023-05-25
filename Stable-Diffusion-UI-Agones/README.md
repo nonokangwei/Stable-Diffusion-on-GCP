@@ -17,7 +17,7 @@ you can use the cloud shell as the run time to perform below steps.
 1. Make sure you have an available GCP project with a VPC network for your deployment.
 2. Enable the required service API using [cloud shell](https://cloud.google.com/shell/docs/run-gcloud-commands):
 ```
-gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com vpcaccess.googleapis.com redis.googleapis.com cloudscheduler.googleapis.com
+gcloud services enable compute.googleapis.com artifactregistry.googleapis.com container.googleapis.com file.googleapis.com vpcaccess.googleapis.com redis.googleapis.com cloudscheduler.googleapis.com cloudfunctions.googleapis.com cloudbuild.googleapis.com
 ```
 ### Create GKE Cluster
 Run the following steps in Cloud Shell. This guide uses the T4 GPU node as the VM host. You can change the node type to [other GPU instance types](https://cloud.google.com/compute/docs/gpus) based on your needs.
@@ -75,7 +75,7 @@ gcloud auth configure-docker ${REGION}-docker.pkg.dev
 
 
 ### Build Stable Diffusion Image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts
+Build image with provided Dockerfile, push to repositories in Artifact Registry.
 
 ```
 cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/sd-webui
@@ -95,6 +95,9 @@ FILESHARE_NAME=<replace with fileshare name>
 
 
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
+```
+An example could look like:
+```
 gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
 
 ```
@@ -127,7 +130,7 @@ gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json
 ```
 
 ### Build nginx proxy image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua with the ip address record in previous step.
+Build image with provided Dockerfile, push to repositories in Artifact Registry. Please replace ${REDIS_HOST} in the Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/sd.lua with the IP address recorded in the previous step.
 
 ```
 cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
@@ -136,30 +139,30 @@ docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 ```
 
 ### Deploy stable-diffusion agones deployment
-Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
+Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet_pvc.yaml with the image built before.
 ```
 kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
 kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml
 kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
 ```
 
-### Prepare Cloud Function Serverless VPC Access
-Create serverless VPC access connector, which is used by cloud function to connect the private connection endpoint.
+### Create Serverless VPC Access for Cloud Functions
+Create a [Serverless VPC Access connector](https://cloud.google.com/vpc/docs/serverless-vpc-access), which is used to connect your Cloud Functions directly to your Virtual Private Cloud (VPC) network, allowing access to Compute Engine virtual machine (VM) instances, Memorystore instances, and any other resources with an internal IP address.
 ```
 gcloud compute networks vpc-access connectors create sd-agones-connector --network ${VPC_NETWORK} --region ${REGION} --range 192.168.240.16/28
 ```
 
 ### Deploy Cloud Function Cruiser Program
-This Cloud Function work as Cruiser to monitor the idle user, by default when the user is idle for 15mins, the stable-diffusion runtime will be collected back. Please replace ${REDIS_HOST} with the redis instance ip address that record in previous step. To custom the idle timeout default setting, please overwrite setting by setting the variable TIME_INTERVAL.
+This Cloud Function works as Cruiser to monitor idle users. By default when the user is idle for 15 minutes, the stable-diffusion runtime will be collected back. Please replace ${REDIS_HOST} in the command with the redis instance IP address recorded before. You can change the value of variable TIME_INTERVAL to overwrite the default setting.
 ```
 cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function
 gcloud functions deploy redis_http --runtime python310 --trigger-http --allow-unauthenticated --region=${REGION} --vpc-connector=sd-agones-connector --egress-settings=private-ranges-only --set-env-vars=REDIS_HOST=${REDIS_HOST}
 ```
-Record the Function trigger url.
+Record the Cloud Function trigger URL.
 ```
 gcloud functions describe redis_http --region us-central1 --format=json | jq .httpsTrigger.url
 ```
-Create the cruiser scheduler. Please change ${FUNCTION_URL} with url in previous step.
+Create the cruiser scheduler. Please change ${FUNCTION_URL} with URL recorded in the previous step.
 ```
 gcloud scheduler jobs create http sd-agones-cruiser \
     --location=${REGION} \
@@ -167,23 +170,23 @@ gcloud scheduler jobs create http sd-agones-cruiser \
     --uri=${FUNCTION_URL}
 ```
 
-### Deploy IAP(identity awared proxy)
-To allocate isolated stable-diffusion runtime and provide user access auth capability, using the Google Cloud IAP service as an access gateway to provide the identity check and prograge the idenity to the stable-diffusion backend.
+### Deploy IAP([Identity-Aware Proxy](https://cloud.google.com/iap))
+To verify user identity, authenticate user and allocate isolated stable-diffusion runtime to each individual user. We used Google Cloud IAP service as an access gateway to provide access control capability and propragate user idenity to the stable-diffusion backend.
 
-Config the OAuth consent screen and OAuth credentials, check out the [guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#oauth-configure).
+Configure the OAuth consent screen and create OAuth credentials by following this [guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#oauth-configure).
 
-Create an static external ip address, record the ip address.
+Create an static external ip address, record the IP address.
 ```
 gcloud compute addresses create sd-agones --global
 gcloud compute addresses describe sd-agones --global --format=json | jq .address
 ```
 
-Config BackendConfig, replace the client_id and client_secret with the OAuth client create before.
+Configure BackendConfig, replace the client_id and client_secret with the OAuth client created before.
 ```
 kubectl create secret generic iap-secret --from-literal=client_id=client_id_key \
     --from-literal=client_secret=client_secret_key
 ```
-Change the DOMAIN_NAME1 in managed-cert.yaml with the environment domain, then deploy the depend resources.
+Change the DOMAIN_NAME1 in managed-cert.yaml with the environment domain, then deploy the resources.
 ```
 kubectl apply -f ./ingress-iap/managed-cert.yaml
 kubectl apply -f ./ingress-iap/backendconfig.yaml
@@ -191,12 +194,13 @@ kubectl apply -f ./ingress-iap/service.yaml
 kubectl apply -f ./ingress-iap/ingress.yaml
 ```
 
-Give the authorized users required priviledge to access the service. [Guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#iap-access)
+Give the authorized users required priviledge to access your Stable Diffusion service by following this [guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#iap-access)
 
+Change the DNS to point the A record of your domain to the K8s ingress external IP address.
 
 ### FAQ
-#### How could I troubleshooting if I get 502?
-It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually below 3mins), then refresh the page.
+#### How can I troubleshoot if I get 502?
+It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready (usually below 3mins), then refresh the page.
 If it is much longer then expected, then
 
 1. Check stdout/stderr from pod
@@ -215,12 +219,12 @@ redis-cli -h ${redis_host}
 keys *
 del *
 ```
-4. Check cloud scheduler & cloud function, the last run status should be "OK", otherwise check the logs.
+4. Check Cloud Scheduler & Cloud Function, the last run status should be "OK", otherwise check the logs.
 
 #### Why there is a simple-game-server container in the fleet?
-This is an example game server from agones, we leverage it as a game server sdk to interact with agones control plane without additional coding and change to webui.
-The nginx+lua will call simple-game-server to indirectly interact with agones for resource allication and release.
+This is an example game server from agones, we leverage it as a game server SDK to interact with agones control plane without additional coding and changes to the webui.
+The nginx+lua will call simple-game-server to indirectly interact with agones for resource allocation and release.
 
-#### How can I upload file to the pod?
+#### How can I upload files to the pod?
 We made an example [script](./Stable-Diffusion-UI-Agones/sd-webui/extensions/stable-diffusion-webui-udload/scripts/udload.py) to work as an extension for file upload.
 Besides, you can use extensions for image browsing and downloading(https://github.com/zanllp/sd-webui-infinite-image-browsing), model/lora downloading(https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper) and more.

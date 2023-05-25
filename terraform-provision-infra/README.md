@@ -1,4 +1,5 @@
-# Infrastructure and kubernetes resource deploy guide
+[Chinese Version Guide](./README_zh.md)
+# Infrastructure and kubernetes resource deploy guide 
 
 We Offer two version deployment of Stable Diffusion Web UI on GKE
 
@@ -49,7 +50,7 @@ Main step as follow
 5. (After kubernetes resource has been created)Grant IAP-secured Web App User permission for user
 
 
-### 03 Replace parameter [UPPER CASE PARAMETER MUST REPALCE]
+### 03 Replace parameter [UPPER CASE PARAMETER MUST REPALCE] , keep the [Agone verion] code block Uncomment and #[GKE version] code block comment
 
 edit the main.tf replace the locals parameter with your project's.
 - If you choose regional cluster replace the location parameter with region code
@@ -72,7 +73,7 @@ locals {
 }
 
 ```
-### 04 Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE | Firewall Rule | Redis | Redis Private DNS | VPC Connector | Cloud Function | Scheduler | GCS Bucket for Cloud Function Code  )
+### 04 Provision all submodule (including agones_gcp_res,agones_build_image,helm_agones,agones_k8s_res)
 
 ```bash
 # switch to work directory
@@ -82,13 +83,11 @@ cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
 terraform init
 
 # deploy Infrastructure
-terraform apply --auto-approve -target="module.agones_gcp_res" -target="module.agones_build_image"
-terraform apply --auto-approve -target="module.helm_agones" -target="module.agones_k8s_res"
+terraform apply --auto-approve -target="module.agones_gcp_res" -target="module.agones_build_image"; terraform apply --auto-approve -target="module.helm_agones" -target="module.agones_k8s_res"
 
 
 # destroy Infrastructure
-terraform destroy --auto-approve -target="module.helm_agones" -target="module.agones_k8s_res"
-terraform destroy -auto-approve -target="module.agones_gcp_res" -target="module.agones_build_image"
+terraform destroy --auto-approve -target="module.agones_k8s_res"; terraform destroy -auto-approve -target="module.helm_agones"; terraform destroy -auto-approve -target="module.agones_gcp_res"
 ```
 
 ### 05 Grant Permission and access web ui
@@ -115,58 +114,41 @@ Make sure that you have the necessary permissions on your user account:
 
 **roles/editor or roles/owner** is prefered
 
-### 02 Replace project parameter
+### 02 Replace parameter [UPPER CASE PARAMETER MUST REPALCE] , comment the [Agone verion] code block and Uncomment [GKE version] code block
 
 edit the main.tf replace the locals parameter with your project's.
 - If you choose regional cluster replace the location parameter with region code
 - If you choose zonal cluster replace the location parameter with zone code
 
-follow example of us-central1-f zonal cluster
+follow example of us-central1-f zonal cluster with Nvdia T4 Accelerator Node
 
 ```bash
 locals {
-  project_id      = "PROJECT_ID"
-  region          = "us-central1"
-  location        = "us-central1-f"
-  gke_num_nodes   = 1
+  project_id          = "PROJECT_ID"
+  region              = "us-central1"
+  filestore_zone      = "us-central1-f" # Filestore location must be same region or zone with gke
+  cluster_location    = "us-central1-f" # GKE Cluster location
+  node_machine_type   = "custom-12-49152-ext"
+  accelerator_type    = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
+  gke_num_nodes       = 1
 }
 
 ```
-### 03 Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE  )
+### 03 Provision all submodule (including nonagones_gcp_res,nonagones_build_image,nonagones_k8s_res)
 
 ```bash
 # switch to work directory
-gcp-stable-diffusion-build-deploy/terraform-provision-infra/non-agones-version
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
 
 # init terraform
 terraform init
 
-# deploy Infrastructure
-terraform plan
-terraform apply -auto-approve
+# Provision resource
+terraform apply --auto-approve -target="module.nonagones_gcp_res";terraform apply --auto-approve -target="module.nonagones_build_image";terraform apply --auto-approve -target="module.nonagones_k8s_res"
 
-# destroy Infrastructure
-terraform destroy -auto-approve
-```
 
-### 04 Deploy  Kubernetes sample deployment (GKE FileStore PV and PVC | GPU Driver | SD deployment | SD Service LB )
-
-```bash
-# switch to kubernetes sample directory
-cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/non-agones-version/kubernetes-sample
-
-# init terraform
-terraform init
-
-# deploy Infrastructure
-terraform plan
-terraform apply -auto-approve
-
-# Get SD Web UI LB IP 
-kubectl get ingress
-
-# destroy Infrastructure
-terraform destroy -auto-approve
+# destroy resource
+terraform destroy --auto-approve -target="module.nonagones_k8s_res"; terraform destroy --auto-approve -target="module.nonagones_gcp_res"
 ```
 ## Contributing
 

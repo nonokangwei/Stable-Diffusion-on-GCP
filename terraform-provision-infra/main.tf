@@ -1,4 +1,4 @@
-#[agones version start]#######
+
 locals {
   project_id          = "PROJECT_ID"
   oauth_client_id     = "OAUTH_CLIENT_ID"
@@ -11,6 +11,8 @@ locals {
   accelerator_type    = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
   gke_num_nodes       = 1
 }
+
+#[Agones version]
 
 module "agones_gcp_res" {
   source                          = "./modules/agones/gcp-res"
@@ -58,46 +60,35 @@ output "webui_ingress_address" {
   description = "webui ip address for ingress"
 }
 
-#[agones version end]#
+#[Agones version]#
 
-#---seperate block---
 
-#[gke version start]#
+#[GKE version start]#
 
-locals {
-  project_id          = "PROJECT_ID"
-  region              = "us-central1"
-  filestore_zone      = "us-central1-b" # Filestore location must be same region or zone with gke
-  cluster_location    = "us-central1-b" # GKE Cluster location
-  node_machine_type   = "custom-12-49152-ext"
-  accelerator_type    = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
-  gke_num_nodes       = 1
-}
+#module "nonagones_gcp_res" {
+#  source            = "./modules/nonagones/gcp-res"
+#  project_id        = local.project_id
+#  region            = local.region
+#  filestore_zone    = local.filestore_zone
+#  cluster_location  = local.cluster_location
+#  node_machine_type = local.node_machine_type
+#  accelerator_type  = local.accelerator_type
+#  gke_num_nodes     = local.gke_num_nodes
+#}
+#
+#module "nonagones_build_image" {
+#  source            = "./modules/nonagones/cloud-build"
+#  artifact_registry = module.nonagones_gcp_res.artifactregistry_url
+#}
+#
+#module "nonagones_k8s_res" {
+#  source                             = "./modules/nonagones/k8s-res"
+#  project_id                         = local.project_id
+#  gke_cluster_name                   = module.nonagones_gcp_res.kubernetes_cluster_name
+#  gke_cluster_location               = local.cluster_location
+#  gke_cluster_nodepool               = module.nonagones_gcp_res.gpu_nodepool_name
+#  google_filestore_reserved_ip_range = module.nonagones_gcp_res.google_filestore_reserved_ip_range
+#  webui_image_url                    = module.nonagones_build_image.webui_image
+#}
 
-module "nonagones_gcp_res" {
-  source            = "./modules/nonagones/gcp-res"
-  project_id        = local.project_id
-  region            = local.region
-  filestore_zone    = local.filestore_zone
-  cluster_location  = local.cluster_location
-  node_machine_type = local.node_machine_type
-  accelerator_type  = local.accelerator_type
-  gke_num_nodes     = local.gke_num_nodes
-}
-
-module "nonagones_build_image" {
-  source            = "./modules/nonagones/cloud-build"
-  artifact_registry = module.nonagones_gcp_res.artifactregistry_url
-}
-
-module "nonagones_k8s_res" {
-  source                             = "./modules/nonagones/k8s-res"
-  project_id                         = local.project_id
-  gke_cluster_name                   = module.nonagones_gcp_res.kubernetes_cluster_name
-  gke_cluster_location               = local.cluster_location
-  gke_cluster_nodepool               = module.nonagones_gcp_res.gpu_nodepool_name
-  google_filestore_reserved_ip_range = module.nonagones_gcp_res.google_filestore_reserved_ip_range
-  webui_image_url                    = module.nonagones_build_image.webui_image
-}
-
-#[gke version end]
+#[GKE version ]

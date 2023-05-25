@@ -93,13 +93,11 @@ FILESTORE_NAME=<replace with filestore instance name>
 FILESTORE_ZONE=<replace with filestore instance zone>
 FILESHARE_NAME=<replace with fileshare name>
 
-
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
 ```
 An example could look like:
 ```
 gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
-
 ```
 Deploy the PV and PVC resource, replace the nfs-server-ip using the nfs instance's ip address that created before in the file nfs_pv.yaml.
 ```

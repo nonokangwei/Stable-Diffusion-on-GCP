@@ -118,13 +118,66 @@ resource "helm_release" "agones" {
   values = [
     file("./agones-values.yaml")
   ]
+  set {
+    name  = "agones.controller.nodeSelector.cloud\\.google\\.com/gke-nodepool"
+    value = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
+    type  = "string"
+  }
+  set {
+    name  = "agones.ping.nodeSelector.cloud\\.google\\.com/gke-nodepool"
+    value = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
+    type  = "string"
+  }
+  set {
+    name  = "agones.allocator.nodeSelector.cloud\\.google\\.com/gke-nodepool"
+    value = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
+    type  = "string"
+  }
 }
+resource "kubernetes_deployment" "nginx" {
+  metadata {
+    name = "stable-diffusion-nginx-deployment"
+    labels = {
+      app = "stable-diffusion-nginx"
+    }
+  }
+  spec {
+    replicas = 2
+    selector {
+      match_labels = {
+        app = "stable-diffusion-nginx"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "stable-diffusion-nginx"
+        }
+      }
+      spec {
+        container {
+          image = "${data.terraform_remote_state.gke.outputs.artifactregistry_url}/nginx:0.1"
+          name  = "stable-diffusion-nginx"
+          port {
+            container_port = 8080
+          }
+        }
+        node_selector = {
+          "cloud.google.com/gke-nodepool" = data.terraform_remote_state.gke.outputs.gpu_nodepool_name
+        }
+      }
+    }
+  }
+  depends_on = [null_resource.build_nginx_image]
+}
+
 resource "null_resource" "connect_regional_cluster" {
   count = data.terraform_remote_state.gke.outputs.cluster_type == "regional" ? 1 : 0
   provisioner "local-exec" {
     command = "gcloud container clusters get-credentials ${data.terraform_remote_state.gke.outputs.kubernetes_cluster_name} --region ${data.terraform_remote_state.gke.outputs.gke_location} --project ${data.terraform_remote_state.gke.outputs.project_id}"
   }
 }
+
 resource "null_resource" "connect_zonal_cluster" {
   count = data.terraform_remote_state.gke.outputs.cluster_type == "zonal" ? 1 : 0
   provisioner "local-exec" {
@@ -134,35 +187,24 @@ resource "null_resource" "connect_zonal_cluster" {
 
 resource "null_resource" "node_gpu_driver" {
   provisioner "local-exec" {
-    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml"
   }
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl delete -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded.yaml"
-  }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
-}
-
-resource "null_resource" "sample_nginx_deployment" {
-  provisioner "local-exec" {
-    command = "kubectl apply -f nginx-deployment.yaml"
-  }
-  provisioner "local-exec" {
-    when    = destroy
-    command = "kubectl delete -f nginx-deployment.yaml"
+    command = "kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/master/nvidia-driver-installer/cos/daemonset-preloaded-latest.yaml"
   }
   depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
 }
 
 resource "null_resource" "sample_fleet" {
   provisioner "local-exec" {
-    command = "kubectl apply -f fleet.yaml"
+    command = "export IMAGE_URL=${data.terraform_remote_state.gke.outputs.artifactregistry_url}/sd-webui:0.1 && envsubst < fleet.yaml | kubectl apply -f -"
   }
   provisioner "local-exec" {
     when    = destroy
     command = "kubectl delete -f fleet.yaml"
   }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, helm_release.agones]
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, helm_release.agones, kubernetes_deployment.nginx, null_resource.build_webui_image]
 }
 
 resource "null_resource" "sample_fleet__autoscaler" {
@@ -173,7 +215,7 @@ resource "null_resource" "sample_fleet__autoscaler" {
     when    = destroy
     command = "kubectl delete -f fleet-autoscaler.yaml"
   }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, null_resource.sample_fleet]
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, null_resource.sample_fleet, kubernetes_deployment.nginx]
 }
 
 resource "null_resource" "sample_iap_ingress" {
@@ -184,5 +226,26 @@ resource "null_resource" "sample_iap_ingress" {
     when    = destroy
     command = "kubectl delete -f iap-ingress.yaml"
   }
-  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster]
+  depends_on = [null_resource.connect_zonal_cluster, null_resource.connect_regional_cluster, kubernetes_deployment.nginx]
+}
+
+resource "null_resource" "build_webui_image" {
+  provisioner "local-exec" {
+    command     = "gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=us-central1 -t ${data.terraform_remote_state.gke.outputs.artifactregistry_url}/sd-webui:0.1"
+    working_dir = "../../../Stable-Diffusion-UI-Agones/sd-webui/"
+  }
+}
+
+resource "null_resource" "modify_nginx_image" {
+  provisioner "local-exec" {
+    command     = "sed -i 's/$${REDIS_HOST}/redis.private.domain/g' sd.lua"
+    working_dir = "../../../Stable-Diffusion-UI-Agones/nginx/"
+  }
+}
+
+resource "null_resource" "build_nginx_image" {
+  provisioner "local-exec" {
+    command     = "gcloud builds submit --machine-type=e2-highcpu-32 --disk-size=100 --region=us-central1 -t ${data.terraform_remote_state.gke.outputs.artifactregistry_url}/nginx:0.1"
+    working_dir = "../../../Stable-Diffusion-UI-Agones/nginx/"
+  }
 }

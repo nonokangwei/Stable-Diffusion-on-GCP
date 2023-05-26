@@ -10,7 +10,7 @@
 | [Stable-Diffusion-UI-Agones](./Stable-Diffusion-UI-Agones/README_cn.md) | 使用 Agones 托管 Stable Diffusion WebUI 的所有 YAML 文件和 Dockerfile 的演示。 |
 | [Stable-Diffusion-UI-GKE](./Stable-Diffusion-UI-GKE/README.md) | 使用 GKE 托管 Stable Diffusion WebUI 的所有 YAML 文件和 Dockerfile 的演示。 |
 | [Stable-Diffusion-Vertex](./Stable-Diffusion-Vertex/README_cn.md) | DreamBooth & Lora 在 Vertex AI 上训练的参考代码 |
-| [terraform-provision-infra](./terraform-provision-infra/README.md) | 用于创建演示环境的 Terraform 脚本和资源。 |
+| [terraform-provision-infra](./terraform-provision-infra/README_zh.md) | 用于创建演示环境的 Terraform 脚本和资源。 |
 | [examples](./examples) | 工作目录的示例文件夹 | 
 
 

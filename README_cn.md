@@ -9,7 +9,7 @@
 本项目使用[Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)开源作为用户交互前端，客户只需准备Stable-Diffusion模型即可构建/通过容器部署Stable-Diffusion模型。 该项目使用Cloud Build来帮助您使用Stable-Diffusion模型快速构建 docker 镜像，然后您可以基于 docker 镜像进行部署。 为了提供多用户隔离的Stable-Diffusion运行时，使用 [Agones](https://agones.dev/site/) 作为运行时管理的控制平面，Agones 根据用户的资源需求管理和控制Stable-Diffusion运行时的生命周期。
 
 ## 架构
-![sd-agones-arch](images/sd-agones-arch.png)
+![sd-agones-arch](Stable-Diffusion-UI-Agones/images/sd-agones-arch.png)
 
 ## 如何使用
 您可以使用Cloud Shell作为运行时来执行以下步骤。

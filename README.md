@@ -9,7 +9,7 @@ This guide give simple steps for stable-diffusion users to launch a stable diffu
    This project is using the [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) open source as the user interactive front-end, customer can just prepare the stable diffusion model to build/deployment stable diffusion model by container. This project use the cloud build to help you quick build up a docker image with your stable diffusion model, then you can make a deployment base on the docker image. To give mutli-user isolated stable-diffussion runtime, using the [Agones](https://agones.dev/site/) as the stable-diffusion fleet management operator, Agones manage the stable diffussion runtime's lifecycle and control the autoscaling based on user demand.
 
 ## Architecture
-![sd-agones-arch](images/sd-agones-arch.png)
+![sd-agones-arch](Stable-Diffusion-UI-Agones/images/sd-agones-arch.png)
 
 ## How To
 you can use the cloud shell as the run time to do below steps.

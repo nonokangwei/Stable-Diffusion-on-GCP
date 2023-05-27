@@ -1,4 +1,5 @@
-# Infrastructure and kubernetes resource deploy guide
+[Chinese Version Guide](./README_zh.md)
+# Infrastructure and kubernetes resource deploy guide 
 
 We Offer two version deployment of Stable Diffusion Web UI on GKE
 
@@ -40,41 +41,7 @@ Make sure that you have the necessary permissions on your user account:
 
 **roles/editor or roles/owner** is prefered
 
-### 02 Replace project parameter
-
-edit the main.tf replace the locals parameter with your project's.
-- If you choose regional cluster replace the location parameter with region code
-- If you choose zonal cluster replace the location parameter with zone code
-
-follow example of us-central1-f zonal cluster
-
-```bash
-locals {
-  project_id     = "PROJECT_ID"
-  region         = "us-central1"
-  filestore_zone = "us-central1-f"
-  location       = "us-central1-f"
-  gke_num_nodes  = 1
-}
-
-```
-### 03 Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE | Firewall Rule | Redis | Redis Private DNS | VPC Connector | Cloud Function | Scheduler | GCS Bucket for Cloud Function Code  )
-
-```bash
-# switch to work directory
-cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/agones-version
-
-# init terraform
-terraform init
-
-# deploy Infrastructure
-terraform plan
-terraform apply -auto-approve
-
-# destroy Infrastructure
-terraform destroy -auto-approve
-```
-### 04 Manual Step includes Config IAP refer to [Link](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#oauth-configure) and create a DNS A record point to reserved IP (from terraform output webui_address) 
+### 02 Manual Step includes Config IAP refer to [Link](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#oauth-configure) and create a DNS A record point to reserved IP (from terraform output webui_ingress_address)
 Main step as follow
 1. Configuring the OAuth consent screen
 2. Creating OAuth credentials (**IMPORTANT** *please make note of client id and secret**)
@@ -83,40 +50,52 @@ Main step as follow
 5. (After kubernetes resource has been created)Grant IAP-secured Web App User permission for user
 
 
-### 05 Replace OAuth Client id and secret and your owned domain in  kubernetes.tf file
+### 03 Replace parameter [UPPER CASE PARAMETER MUST REPALCE] , keep the [Agone verion] code block Uncomment and #[GKE version] code block comment
+
+edit the main.tf replace the locals parameter with your project's.
+- If you choose regional cluster replace the location parameter with region code
+- If you choose zonal cluster replace the location parameter with zone code
+
+follow example of us-central1-f zonal cluster with Nvdia T4 Accelerator Node
 
 ```bash
 locals {
-  oauth_client_id  = "OAUTH_CLIENT_ID"
+  project_id          = "PROJECT_ID"
+  oauth_client_id     = "OAUTH_CLIENT_ID"
   oauth_client_secret = "OAUTH_CLIENT_SECRET"
-  sd_webui_domain = "your_owned_domain_or_subdomain"
+  sd_webui_domain     = "YOUR_OWNED_CUSTOM_DOMAIN_OR_SUBDOMAIN"
+  region              = "us-central1"
+  filestore_zone      = "us-central1-f" # Filestore location must be same region or zone with gke
+  cluster_location    = "us-central1-f" # GKE Cluster location
+  node_machine_type   = "custom-12-49152-ext"
+  accelerator_type    = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
+  gke_num_nodes       = 1
 }
-```
 
-### 06 Deploy  Kubernetes sample resource (GKE FileStore PV and PVC | Kubernetes Secret | Kubernetes Namespace |Agones| GPU Driver |Stackdriver Adapter|Nginx_deployment|Fleet|Fleet Autoscaler|IAP Ingress )
+```
+### 04 Provision all submodule (including agones_gcp_res,agones_build_image,helm_agones,agones_k8s_res)
 
 ```bash
-# switch to kubernetes sample directory
-cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/agones-version/kubernetes-deployment
+# switch to work directory
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
 
 # init terraform
 terraform init
 
 # deploy Infrastructure
-terraform plan
-terraform apply -auto-approve
+terraform apply --auto-approve -target="module.agones_gcp_res" -target="module.agones_build_image"; terraform apply --auto-approve -target="module.helm_agones" -target="module.agones_k8s_res"
+
 
 # destroy Infrastructure
-terraform destroy -auto-approve
+terraform destroy --auto-approve -target="module.agones_k8s_res"; terraform destroy -auto-approve -target="module.helm_agones"; terraform destroy -auto-approve -target="module.agones_gcp_res"
 ```
 
-### 07 Grant Permission and access web ui
+### 05 Grant Permission and access web ui
 * Back to Step 04.5 grant IAP-secured Web App User permission 
 * Access webui via your domain or subdomain
 
-
-## No Agones Version
-
+## Non Agones Version
+s
 ### 01 Set up permissions
 
 Make sure that you have the necessary permissions on your user account:
@@ -135,58 +114,41 @@ Make sure that you have the necessary permissions on your user account:
 
 **roles/editor or roles/owner** is prefered
 
-### 02 Replace project parameter
+### 02 Replace parameter [UPPER CASE PARAMETER MUST REPALCE] , comment the [Agone verion] code block and Uncomment [GKE version] code block
 
 edit the main.tf replace the locals parameter with your project's.
 - If you choose regional cluster replace the location parameter with region code
 - If you choose zonal cluster replace the location parameter with zone code
 
-follow example of us-central1-f zonal cluster
+follow example of us-central1-f zonal cluster with Nvdia T4 Accelerator Node
 
 ```bash
 locals {
-  project_id      = "PROJECT_ID"
-  region          = "us-central1"
-  location        = "us-central1-f"
-  gke_num_nodes   = 1
+  project_id          = "PROJECT_ID"
+  region              = "us-central1"
+  filestore_zone      = "us-central1-f" # Filestore location must be same region or zone with gke
+  cluster_location    = "us-central1-f" # GKE Cluster location
+  node_machine_type   = "custom-12-49152-ext"
+  accelerator_type    = "nvidia-tesla-t4" # Available accelerator_type from gcloud compute accelerator-types list --format='csv(zone,name)'
+  gke_num_nodes       = 1
 }
 
 ```
-### 03 Provision Infrastructure (VPC | Subnet | NAT | FileStore | Artifact Registry | GKE  )
+### 03 Provision all submodule (including nonagones_gcp_res,nonagones_build_image,nonagones_k8s_res)
 
 ```bash
 # switch to work directory
-gcp-stable-diffusion-build-deploy/terraform-provision-infra/non-agones-version
+cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
 
 # init terraform
 terraform init
 
-# deploy Infrastructure
-terraform plan
-terraform apply -auto-approve
+# Provision resource
+terraform apply --auto-approve -target="module.nonagones_gcp_res";terraform apply --auto-approve -target="module.nonagones_build_image";terraform apply --auto-approve -target="module.nonagones_k8s_res"
 
-# destroy Infrastructure
-terraform destroy -auto-approve
-```
 
-### 04 Deploy  Kubernetes sample deployment (GKE FileStore PV and PVC | GPU Driver | SD deployment | SD Service LB )
-
-```bash
-# switch to kubernetes sample directory
-cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/non-agones-version/kubernetes-sample
-
-# init terraform
-terraform init
-
-# deploy Infrastructure
-terraform plan
-terraform apply -auto-approve
-
-# Get SD Web UI LB IP 
-kubectl get ingress
-
-# destroy Infrastructure
-terraform destroy -auto-approve
+# destroy resource
+terraform destroy --auto-approve -target="module.nonagones_k8s_res"; terraform destroy --auto-approve -target="module.nonagones_gcp_res"
 ```
 ## Contributing
 

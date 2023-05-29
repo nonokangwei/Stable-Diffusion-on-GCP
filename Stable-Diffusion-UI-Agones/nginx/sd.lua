@@ -52,6 +52,7 @@ if lookup_res == ngx.null and gs_name_res ~= "Ready" then
         "https://us-central1-project-kangwe-poc.cloudfunctions.net/agones_gs_backend?username="..key_uid,
             {
             method = "GET",
+            ssl_verify = false
           }
     )
 
@@ -59,7 +60,7 @@ if lookup_res == ngx.null and gs_name_res ~= "Ready" then
     local resp_data = cjson.decode(res.body)
     local gs_name = resp_data["gs_name"]
 
-    ok, err = red:hset(final_uid, "gsname", gs_name, "lastaccess", secs)
+    ok, err = red:hset(key_uid, "gsname", gs_name, "lastaccess", secs)
     if not ok then
 --         print("fail to set redis key")
         ngx.log(ngx.ERR, "failed to hset: ", err)

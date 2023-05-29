@@ -63,4 +63,9 @@ resource "helm_release" "agones" {
     value = var.gke_cluster_nodepool
     type  = "string"
   }
+  set {
+    name  = "agones.extensions.nodeSelector.cloud\\.google\\.com/gke-nodepool"
+    value = var.gke_cluster_nodepool
+    type  = "string"
+  }
 }

@@ -83,11 +83,11 @@ cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
 terraform init
 
 # deploy Infrastructure
-terraform apply --auto-approve -target="module.agones_gcp_res" -target="module.agones_build_image"; terraform apply --auto-approve -target="module.helm_agones" -target="module.agones_k8s_res"
+terraform apply --auto-approve -target="module.agones_gcp_res";terraform apply --auto-approve  -target="module.agones_build_image";terraform apply --auto-approve -target="module.helm_agones";terraform apply --auto-approve -target="module.agones_k8s_res"
 
 
 # destroy Infrastructure
-terraform destroy --auto-approve -target="module.agones_k8s_res"; terraform destroy -auto-approve -target="module.helm_agones"; terraform destroy -auto-approve -target="module.agones_gcp_res"
+terraform destroy --auto-approve -target="module.agones_k8s_res";terraform destroy --auto-approve  -target="module.helm_agones";terraform destroy --auto-approve -target="module.agones_gcp_res"
 ```
 
 ### 05 Grant Permission and access web ui

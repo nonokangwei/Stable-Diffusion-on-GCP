@@ -43,7 +43,7 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.3
+            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.4
             imagePullPolicy: Always
             command: ["/bin/sh", "start.sh"]
             volumeMounts:

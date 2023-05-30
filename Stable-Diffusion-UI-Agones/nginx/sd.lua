@@ -29,10 +29,10 @@ end
 local secs = ngx.time()
 local sub_key = string.gsub(key, ":", ".")
 local key_uid = string.gsub(sub_key, "@", ".")
-local gs_name = "sd-webui-" .. key_uid
+local gsname = "sd-webui-" .. key_uid
 
 local lookup_res, err = red:hget(key_uid, "target")
-local gs_name_res, err = red:get(gs_name)
+local gs_name_res, err = red:get(gsname)
 print(lookup_res)
 print(gs_name_res)
 
@@ -61,12 +61,22 @@ if lookup_res == ngx.null and gs_name_res ~= "Ready" then
     local resp_data = cjson.decode(res.body)
     local gs_name = resp_data["gs_name"]
 
-    ok, err = red:hset(key_uid, "gsname", gs_name, "lastaccess", secs)
-    if not ok then
+    if gs_name ~= "fail" then
+        ok, err = red:hset(key_uid, "gsname", gs_name, "lastaccess", secs)
+        if not ok then
 --         print("fail to set redis key")
-        ngx.log(ngx.ERR, "failed to hset: ", err)
-        ngx.say("failed to hset: ", err)
-        return
+            ngx.log(ngx.ERR, "failed to hset: ", err)
+            ngx.say("failed to hset: ", err)
+            return
+        end
+    else
+        ok, err = red:hset(key_uid, "lastaccess", secs)
+        if not ok then
+--         print("fail to set redis key")
+            ngx.log(ngx.ERR, "failed to hset: ", err)
+            ngx.say("failed to hset: ", err)
+            return
+        end
     end
 
     ngx.header.content_type = "text/html"

@@ -126,15 +126,6 @@ Record the redis instance connection ip address.
 gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json | jq .host
 ```
 
-### Build nginx proxy image
-Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua with the ip address record in previous step.
-
-```
-cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
-docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
-docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
-```
-
 ### Build simple game server image
 Build image with provided Dockerfile, push to repo in Cloud Artifacts.
 ```
@@ -179,7 +170,7 @@ gcloud scheduler jobs create http sd-agones-cruiser \
 This function is used to handle Stable Diffusion POD Creation request, when the user init the access to the env, it will trigger this function to create a Stable Diffusion POD.
 Record the GKE Cluster API Server Endpoint IP address
 ```
-gcloud container clusters describe sdagonesnew --region us-central1 --format=json | jq .privateClusterConfig.publicEndpoint
+gcloud container clusters describe ${GKE_CLUSTER_NAME} --region us-central1 --format=json | jq .privateClusterConfig.publicEndpoint
 ```
 Update the gs.yaml file with the Stable-Diffusion-WebUI docker image url and simple-game-server docker image url
 ```
@@ -219,6 +210,19 @@ cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-relay-http/deploy
 # change the <cloud-function-state-controller-url> to the cloud function state controller url
 ```
 
+### Build nginx proxy image
+Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please replace ${REDIS_HOST} in the gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua with the ip address record in previous step, replace the ${agones_gs_backend} with the trigger url below:
+
+Record the Function trigger url.
+```
+gcloud functions describe agones_gs_backend --region us-central1 --format=json | jq .httpsTrigger.url
+```
+
+```
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
+```
 
 ### Deploy IAP(identity awared proxy)
 To allocate isolated stable-diffusion runtime and provide user access auth capability, using the Google Cloud IAP service as an access gateway to provide the identity check and prograge the idenity to the stable-diffusion backend.

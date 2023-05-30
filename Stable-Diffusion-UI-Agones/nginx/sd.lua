@@ -49,7 +49,7 @@ if lookup_res == ngx.null and gs_name_res ~= "Ready" then
     --       }
     -- )
     local res, err = httpc:request_uri(
-        "https://us-central1-project-kangwe-poc.cloudfunctions.net/agones_gs_backend?username="..key_uid,
+        "${agones_gs_backend}?username="..key_uid,
             {
             method = "GET",
             ssl_verify = false

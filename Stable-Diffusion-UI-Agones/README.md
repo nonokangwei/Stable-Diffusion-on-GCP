@@ -31,7 +31,7 @@ VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
 
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
+    --no-enable-basic-auth --release-channel "None" \
     --machine-type "e2-standard-2" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
@@ -95,6 +95,7 @@ FILESHARE_NAME=<replace with fileshare name>
 
 
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
+e.g. 
 gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
 
 ```
@@ -131,16 +132,39 @@ Build image with provided Dockerfile, push to repo in Cloud Artifacts. Please re
 
 ```
 cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
+REDIS_IP=$(gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json 2>/dev/null | jq .host)
+sed "s@\"\${REDIS_HOST}\"@${REDIS_IP}@g" sd.lua > _tmp
+mv _tmp sd.lua
+
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 ```
 
-### Deploy stable-diffusion agones deployment
-Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
+### Build agones-sidecar image
+Build the optional agones-sidecar image with provided Dockerfile, push to repo in Cloud Artifacts. This is to hijack the 502 returned from sd-webui before it finished launching to provide a graceful experience.
+
 ```
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-sidecar
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-agones-sidecar:0.1
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-agones-sidecar:0.1
+```
+
+### Deploy stable-diffusion agones deployment
+Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built(nginx, optional agones-sidecar and sd-webui) before.
+```
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones
+sed "s@image:.*simple-game-server:0.14@image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-agones-sidecar:0.1@" fleet_pvc.yaml > _tmp
+sed "s@image:.*sd-webui:0.1@image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1@" _tmp > fleet_pvc.yaml
+cd -
+
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
+sed "s@image:.*sd-nginx:0.1@image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1@" deployment.yaml > _tmp
+mv _tmp deployment.yaml
+cd -
+
+kubectl apply -f Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
+kubectl apply -f Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml
+kubectl apply -f Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
 ```
 
 ### Prepare Cloud Function Serverless VPC Access
@@ -152,7 +176,7 @@ gcloud compute networks vpc-access connectors create sd-agones-connector --netwo
 ### Deploy Cloud Function Cruiser Program
 This Cloud Function work as Cruiser to monitor the idle user, by default when the user is idle for 15mins, the stable-diffusion runtime will be collected back. Please replace ${REDIS_HOST} with the redis instance ip address that record in previous step. To custom the idle timeout default setting, please overwrite setting by setting the variable TIME_INTERVAL.
 ```
-cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function
 gcloud functions deploy redis_http --runtime python310 --trigger-http --allow-unauthenticated --region=${REGION} --vpc-connector=sd-agones-connector --egress-settings=private-ranges-only --set-env-vars=REDIS_HOST=${REDIS_HOST}
 ```
 Record the Function trigger url.
@@ -190,13 +214,43 @@ kubectl apply -f ./ingress-iap/backendconfig.yaml
 kubectl apply -f ./ingress-iap/service.yaml
 kubectl apply -f ./ingress-iap/ingress.yaml
 ```
-
 Give the authorized users required priviledge to access the service. [Guide](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#iap-access)
+
+### Update DNS record for the domain
+Update your DNS record, set A record value to $(gcloud compute addresses describe sd-agones --global --format=json | jq .address) for the domain used in managed-cert.yaml
+The Google-managed certificate won't be provisioned successfully unless the domain is already associated with the ingress external IP,
+check out the [guide, see step 8](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs)
+
+### Access the service domain
+Use accounts setup with IAP access to access service domain.
+
+### Clean up
+```
+kubectl delete -f ./ingress-iap/managed-cert.yaml
+kubectl delete -f ./ingress-iap/backendconfig.yaml
+kubectl delete -f ./ingress-iap/service.yaml
+kubectl delete -f ./ingress-iap/ingress.yaml
+
+gcloud container clusters delete ${GKE_CLUSTER_NAME} --region=${REGION_NAME}
+
+gcloud compute addresses delete sd-agones --global
+
+gcloud scheduler jobs delete sd-agones-cruiser --location=${REGION}
+gcloud functions delete redis_http --region=${REGION} 
+
+gcloud compute networks vpc-access connectors delete sd-agones-connector --region ${REGION} --async
+
+gcloud artifacts repositories delete ${BUILD_REGIST} \
+    --location=us-central1 --async
+
+gcloud redis instances delete --project=${PROJECT_ID} sd-agones-cache
+gcloud filestore instances delete ${FILESTORE_NAME} --zone=${FILESTORE_ZONE}
+```
 
 
 ### FAQ
 #### How could I troubleshooting if I get 502?
-It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually below 3mins), then refresh the page.
+It is normal if you get 502 before pod is ready, you may have to wait for a few minutes for containers to be ready(usually less than 10mins), then refresh the page.
 If it is much longer then expected, then
 
 1. Check stdout/stderr from pod
@@ -224,3 +278,7 @@ The nginx+lua will call simple-game-server to indirectly interact with agones fo
 #### How can I upload file to the pod?
 We made an example [script](./Stable-Diffusion-UI-Agones/sd-webui/extensions/stable-diffusion-webui-udload/scripts/udload.py) to work as an extension for file upload.
 Besides, you can use extensions for image browsing and downloading(https://github.com/zanllp/sd-webui-infinite-image-browsing), model/lora downloading(https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper) and more.
+
+#### How to persist the settings in SD Webui?
+sd-webui only load config.json/ui-config.json on startup. If you click apply settings, it would write the current settings in UI to the config files, so we could not persist the two files with symlink trick.
+One workaround is to make golden config files and pack them to the Docker image. We have an [example](../examples/sd-webui/Dockerfile) to make settings of "quicksettings_list": ["sd_model_checkpoint","sd_vae","CLIP_stop_at_last_layers"] persist.

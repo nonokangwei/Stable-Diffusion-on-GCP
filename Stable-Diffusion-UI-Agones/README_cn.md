@@ -32,7 +32,7 @@ VPC_NETWORK=<将其替换为您的 vpc 网络名称>
 VPC_SUBNETWORK=<将其替换为您的 vpc 子网名称>
 
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
+    --no-enable-basic-auth --release-channel "None" \
     --machine-type "e2-standard-2" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
@@ -97,6 +97,7 @@ FILESHARE_NAME=<替换为文件共享名称>
 
 
 gcloud filestore instances create ${FILESTORE_NAME} --zone=${FILESTORE_ZONE} --tier=BASIC_HDD --file-share=name=${FILESHARE_NAME},capacity=1TB --network=name=${VPC_NETWORK}
+e.g.
 gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
 
 ```
@@ -129,20 +130,42 @@ gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json
 ```
 
 ### 构建nginx代理镜像
-使用提供的 Dockerfile 构建映像，推送到 Cloud Artifacts 中的 repo。 请将 gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua 中的 ${REDIS_HOST} 替换为上一步记录的 ip 地址。
+使用提供的 Dockerfile 构建映像， 请将 gcp-stable-diffusion-build-deploy/Stable-Diffusion-UI-Agones/nginx/sd.lua 中的 ${REDIS_HOST} 替换为上一步记录的 ip 地址。
 
 ```
 cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
+REDIS_IP=$(gcloud redis instances describe sd-agones-cache --region ${REGION} --format=json 2>/dev/null | jq .host)
+sed "s@\"\${REDIS_HOST}\"@${REDIS_IP}@g" sd.lua > _tmp
+mv _tmp sd.lua
+
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
+```
+
+### 构建agones-sidecar镜像
+使用提供的 Dockerfile 构建映像，推送到 Cloud Artifacts 中的 repo。该镜像为可选，目的是为了劫持sd-webui在启动完成之前返回的502，优化最终用户的体验。
+```
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-sidecar
+docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-agones-sidecar:0.1
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-agones-sidecar:0.1
 ```
 
 ### 利用Agones部署Stable Diffusion WebUI
 Deploy stable-diffusion agone deployment，请将deployment.yaml和fleet yaml中的image URL替换为之前构建的容器镜像url。
 ```
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones
+sed "s@image:.*simple-game-server:0.14@image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-agones-sidecar:0.1@" fleet_pvc.yaml > _tmp
+sed "s@image:.*sd-webui:0.1@image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-webui:0.1@" _tmp > fleet_pvc.yaml
+cd -
+
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
+sed "s@image:.*sd-nginx:0.1@image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1@" deployment.yaml > _tmp
+mv _tmp deployment.yaml
+cd -
+
+kubectl apply -f Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
+kubectl apply -f Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml
+kubectl apply -f Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml
 ```
 
 ### 准备 Cloud Function Serverless VPC 访问
@@ -154,7 +177,7 @@ gcloud compute networks vpc-access connectors create sd-agones-connector --netwo
 ### 部署 Cloud Function Cruiser 程序
 此 Cloud Function 作为 Cruiser 监控空闲用户，默认情况下当用户空闲 15 分钟时，stable-diffusion 运行时将被收集回来。 请将${REDIS_HOST}替换为上一步记录的redis实例ip地址。 要自定义空闲超时默认设置，请通过设置变量 TIME_INTERVAL 来覆盖设置。
 ```
-cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function
+cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/cloud-function
 gcloud functions deploy redis_http --runtime python310 --trigger-http --allow-unauthenticated --region=${REGION} --vpc-connector=sd-agones-connector --egress-settings=private-ranges-only --set-env-vars=REDIS_HOST=${REDIS_HOST}
 ```
 记录函数触发器 url。
@@ -195,10 +218,40 @@ kubectl apply -f ./ingress-iap/ingress.yaml
 
 授予授权用户访问服务所需的权限。 [指南](https://cloud.google.com/iap/docs/enabling-kubernetes-howto#iap-access)
 
+### 为服务域名更新DNS记录
+将managed-cert.yaml里设置的服务域名的DNS的A记录调整为ingress的external ip，也就是之前创建的ip，$(gcloud compute addresses describe sd-agones --global --format=json | jq .address)
+Google签发和托管的证书需要将域名关联到LB/ingress的ip才可以配置成功，具体参考 [文档，第8步](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs?hl=zh-cn)
+
+### 访问服务域名
+使用IAP授权的用户访问服务域名
+
+### 清空资源
+```
+kubectl delete -f ./ingress-iap/managed-cert.yaml
+kubectl delete -f ./ingress-iap/backendconfig.yaml
+kubectl delete -f ./ingress-iap/service.yaml
+kubectl delete -f ./ingress-iap/ingress.yaml
+
+gcloud container clusters delete ${GKE_CLUSTER_NAME} --region=${REGION_NAME}
+
+gcloud compute addresses delete sd-agones --global
+
+gcloud scheduler jobs delete sd-agones-cruiser --location=${REGION}
+gcloud functions delete redis_http --region=${REGION} 
+
+gcloud compute networks vpc-access connectors delete sd-agones-connector --region ${REGION} --async
+
+gcloud artifacts repositories delete ${BUILD_REGIST} \
+    --location=us-central1 --async
+
+gcloud redis instances delete --project=${PROJECT_ID} sd-agones-cache
+gcloud filestore instances delete ${FILESTORE_NAME} --zone=${FILESTORE_ZONE}
+```
+
 
 ## 常见问题
 ### 如果我得到 502，我该如何排除故障？
-如果在 pod 准备好之前得到 502 是正常的，你可能需要等待几分钟容器准备好（通常是小于 3 分钟），然后刷新页面。
+如果在 pod 准备好之前得到 502 是正常的，你可能需要等待几分钟容器准备好（通常是小于 10 分钟），然后刷新页面。
 如果它比预期的要长得多，那么
 1. 从 pod 检查 stdout/stderr
 查看webui是否启动成功
@@ -225,3 +278,7 @@ nginx+lua会调用simple-game-server间接与agones交互进行资源分配和�
 ### 如何将文件上传到 pod？
 我们做了一个示范[脚本](./Stable-Diffusion-UI-Agones/sd-webui/extensions/stable-diffusion-webui-udload/scripts/udload.py) 以插件的形式实现文件上传。
 除此之外，浏览和下载图片(https://github.com/zanllp/sd-webui-infinite-image-browsing)，下载模型(https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper)等都可以借助插件的方式实现。
+
+### 如何持久化SD Webui里的setting配置？
+由于sd-webui仅在启动时读取config.json/ui-config.json配置文件，启动后的设置项不会主动与文件同步，点击应用设置时会将ui界面的设置同步到文件，因此无法通过软链接的方式持久化这2个文件。
+一个折衷办法是配置一个golden配置文件，打包到容器镜像中，避免后续需要频繁修改，[这里](../examples/sd-webui/Dockerfile)有一个参考做法，实现将以下配置持久化，"quicksettings_list": ["sd_model_checkpoint","sd_vae","CLIP_stop_at_last_layers"],

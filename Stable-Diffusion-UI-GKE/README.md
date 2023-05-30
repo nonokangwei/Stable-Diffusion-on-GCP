@@ -184,3 +184,14 @@ Deploy horizonal pod autoscaler policy on the Stable Diffusion deployment
 kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hpa.yaml
 ```
 **Note: If the GPU time-sharing feature is enabled in GKE clsuter, please use the hpa-timeshare.yaml, make sure to substitude the GKE_CLUSTER_NAME in the YAML file.**
+
+## Clean up
+```
+gcloud container clusters delete ${GKE_CLUSTER_NAME} --region=${REGION_NAME}
+
+gcloud filestore instances delete ${FILESTORE_NAME} --zone=${FILESTORE_ZONE}
+
+gcloud artifacts repositories delete ${BUILD_REGIST} \
+    --location=us-central1 --async
+
+```

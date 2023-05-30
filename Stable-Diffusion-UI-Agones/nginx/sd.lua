@@ -29,9 +29,10 @@ end
 local secs = ngx.time()
 local sub_key = string.gsub(key, ":", ".")
 local key_uid = string.gsub(sub_key, "@", ".")
+local gs_name = "sd-webui-" .. key_uid
 
 local lookup_res, err = red:hget(key_uid, "target")
-local gs_name_res, err = red:hget(key_uid, "gsname")
+local gs_name_res, err = red:get(gs_name)
 print(lookup_res)
 print(gs_name_res)
 

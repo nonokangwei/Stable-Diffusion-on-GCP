@@ -14,9 +14,30 @@ spec:
     container: stable-diffusion-webui
     containerPort: 7860
     protocol: TCP
+  health:
+    # Disable health checking. defaults to false, but can be set to true
+    disabled: false
+    # Number of seconds after the container has started before health check is initiated. Defaults to 5 seconds
+    initialDelaySeconds: 5
+    # If the `Health()` function doesn't get called at least once every period (seconds), then
+    # the game server is not healthy. Defaults to 5
+    periodSeconds: 5
+    # Minimum consecutive failures for the health probe to be considered failed after having succeeded.
+    # Defaults to 3. Minimum value is 1
+    failureThreshold: 3
+  # Parameters for game server sidecar
   template:
     spec:
       containers:
+      - name: simple-game-server
+        image: <Simple-Game-Server-Image>
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "20m"
+          limits:
+            memory: "64Mi"
+            cpu: "20m"
       - name: stable-diffusion-webui
         image: <Stable-Diffusion-WebUI-Image>
         command: ["/bin/sh", "start.sh"]
@@ -27,33 +48,6 @@ spec:
         resources:
           limits:
             nvidia.com/gpu: 1
-        # livenessProbe:
-        #   httpGet:
-        #     path: /
-        #     port: 7860
-        #   initialDelaySeconds: 
-        #   periodSeconds: 5
-        # readinessProbe:
-        #   httpGet:
-        #     path: /
-        #     port: 7860
-        #   initialDelaySeconds: 
-        #   periodSeconds: 5
-        # startupProbe:
-        #   httpGet:
-        #     path: /
-        #     port: 7860
-        #   failureThreshold: 60
-        #   periodSeconds: 10
-      - name: simple-game-server
-        image: <Simple-Game-Server-Image>
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "20m"
-          limits:
-            memory: "64Mi"
-            cpu: "20m"
       volumes:
         - name: stable-diffusion-storage
           persistentVolumeClaim:

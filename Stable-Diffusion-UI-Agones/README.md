@@ -99,7 +99,7 @@ e.g.
 gcloud filestore instances create nfs-store --zone=us-central1-b --tier=BASIC_HDD --file-share=name="vol1",capacity=1TB --network=name=${VPC_NETWORK}
 
 ```
-Deploy the PV and PVC resource, replace the nfs-server-ip using the nfs instance's ip address that created before in the file nfs_pv.yaml.
+Deploy the PV and PVC resource, replace the nfs-server-ip using the nfs instance's ip address that created before in the file nfs_pv.yaml. The yaml file is located in ./Stable-Diffusion-UI-Agones/agones/ folder.
 ```
 kubectl apply -f ./Stable-Diffusion-UI-Agones/agones/nfs_pv.yaml
 kubectl apply -f ./Stable-Diffusion-UI-Agones/agones/nfs_pvc.yaml
@@ -282,3 +282,4 @@ Besides, you can use extensions for image browsing and downloading(https://githu
 #### How to persist the settings in SD Webui?
 sd-webui only load config.json/ui-config.json on startup. If you click apply settings, it would write the current settings in UI to the config files, so we could not persist the two files with symlink trick.
 One workaround is to make golden config files and pack them to the Docker image. We have an [example](../examples/sd-webui/Dockerfile) to make settings of "quicksettings_list": ["sd_model_checkpoint","sd_vae","CLIP_stop_at_last_layers"] persist.
+=======

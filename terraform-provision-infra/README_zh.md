@@ -83,11 +83,11 @@ cd gcp-stable-diffusion-build-deploy/terraform-provision-infra/
 terraform init
 
 # 部署资源
-terraform apply --auto-approve -target="module.agones_gcp_res" -target="module.agones_build_image"; terraform apply --auto-approve -target="module.helm_agones" -target="module.agones_k8s_res"
+terraform apply --auto-approve -target="module.agones_gcp_res";terraform apply --auto-approve  -target="module.agones_build_image";terraform apply --auto-approve -target="module.helm_agones";terraform apply --auto-approve -target="module.agones_k8s_res"
 
 
 # 销毁资源
-terraform destroy --auto-approve -target="module.agones_k8s_res"; terraform destroy -auto-approve -target="module.helm_agones"; terraform destroy -auto-approve -target="module.agones_gcp_res"
+terraform destroy --auto-approve -target="module.agones_k8s_res";terraform destroy --auto-approve  -target="module.helm_agones";terraform destroy --auto-approve -target="module.agones_gcp_res"
 ```
 
 ### 05 设置域名解析和授权用户访问负载均衡

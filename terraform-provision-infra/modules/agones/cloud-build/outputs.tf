@@ -7,6 +7,6 @@ output "nginx_image" {
   description = "nginx image url"
 }
 output "game_server_image" {
-  value       = "${var.artifact_registry}/${var.nginx_image.tag}"
+  value       = "${var.artifact_registry}/${var.game_server_image.tag}"
   description = "nginx image url"
 }

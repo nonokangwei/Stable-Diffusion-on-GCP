@@ -2,7 +2,7 @@ FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
-    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 ffmpeg libsm6 libxext6 && \
+    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
@@ -33,12 +33,12 @@ RUN set -ex && cd stable-diffusion-webui \
     && git clone https://gitcode.net/ranting8323/stable-diffusion-webui-wd14-tagger.git extensions/stable-diffusion-webui-wd14-tagger \
     && git clone https://gitcode.net/overbill1683/stable-diffusion-webui-localization-zh_Hans.git extensions/stable-diffusion-webui-localization-zh_Hans \
     && git clone https://gitcode.net/ranting8323/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
-    && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet \
-    && git clone https://github.com/zanllp/sd-webui-infinite-image-browsing.git extensions/sd-webui-infinite-image-browsing
+    && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet
 
 RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
 
 EXPOSE 7860
+
 
 WORKDIR /stable-diffusion-webui/
 CMD ["python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access"]

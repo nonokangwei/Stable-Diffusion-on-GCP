@@ -28,14 +28,18 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: waangjie/stable-diffusion-webui:inferencev1
+            image: $IMAGE_URL
             command: ["/bin/sh", "start.sh"]
             volumeMounts:
-            - name: stable-diffusion-storage
-              mountPath: /result
+            - mountPath: /stable-diffusion-webui/models
+              name: stable-diffusion-storage
+              subPath: models
+            - mountPath: /result
+              name: stable-diffusion-storage
+              subPath: result
             resources:
               limits:
-                nvidia.com/gpu: 1
+                nvidia.com/gpu: "1"
           volumes:
             - name: stable-diffusion-storage
               persistentVolumeClaim:

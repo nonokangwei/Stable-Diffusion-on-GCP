@@ -18,7 +18,7 @@ RUN git -C /stable-diffusion-webui/repositories/stable-diffusion-stability-ai ch
 RUN git clone https://github.com/CompVis/taming-transformers.git /stable-diffusion-webui/repositories/taming-transformers
 RUN git -C /stable-diffusion-webui/repositories/taming-transformers checkout 24268930bf1dce879235a7fddd0b2355b84d7ea6
 RUN git clone https://github.com/crowsonkb/k-diffusion.git /stable-diffusion-webui/repositories/k-diffusion
-RUN git -C /stable-diffusion-webui/repositories/k-diffusion checkout 5b3af030dd83e0297272d861c19477735d0317ec
+RUN git -C /stable-diffusion-webui/repositories/k-diffusion checkout c9fe758757e022f05ca5a53fa8fac28889e4f1cf
 RUN git clone https://github.com/sczhou/CodeFormer.git /stable-diffusion-webui/repositories/CodeFormer
 RUN git -C /stable-diffusion-webui/repositories/CodeFormer checkout c5b4593074ba6214284d6acd5f1719b6c5d739af
 RUN git clone https://github.com/salesforce/BLIP.git /stable-diffusion-webui/repositories/BLIP

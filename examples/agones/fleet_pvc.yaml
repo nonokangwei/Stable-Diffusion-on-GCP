@@ -33,7 +33,8 @@ spec:
         spec:
           containers:
           - name: simple-game-server
-            image: us-docker.pkg.dev/agones-images/examples/simple-game-server:0.14
+            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-agones-sidecar:0.1
+            # image: us-docker.pkg.dev/agones-images/examples/simple-game-server:0.14
             resources:
               requests:
                 memory: "64Mi"
@@ -42,7 +43,7 @@ spec:
                 memory: "64Mi"
                 cpu: "20m"
           - name: stable-diffusion-webui
-            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.1
+            image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-webui:0.4
             imagePullPolicy: Always
             command: ["/bin/sh", "start.sh"]
             volumeMounts:

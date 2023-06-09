@@ -9,6 +9,7 @@ import socket
 def redis_http(request):
     redis_host = os.getenv("REDIS_HOST", "127.0.0.1")
     time_interval = os.getenv("TIME_INTERVAL", 900)
+    time_interval = int(time_interval)
     
     if redis_host == "127.0.0.1":
         print("please correct your redis_host setting!")

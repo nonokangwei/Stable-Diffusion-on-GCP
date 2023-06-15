@@ -1,0 +1,8 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-f', 'Dockerfile_kohya', '-t', 'us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya', '.' ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya']
+options:
+  machineType: 'N1_STANDARD_8'
+  diskSizeGb: '200'

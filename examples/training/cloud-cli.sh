@@ -12,10 +12,10 @@ gcloud builds submit --config cloud-build-config-kohya.yaml .
 # input_storage, output_storage, and display_name are required, other arguments are optional.
 gcloud ai custom-jobs create  \
   --region=us-central1   \
-  --display-name=sd-kohya   \
-  --config=vertex-config-nfs.yaml   \
-  --args="--method=kohya_lora,--model_name=CompVis/stable-diffusion-v1-4,--input_storage=/gcs/sd_lsj/input_dog_kohya,--output_storage=/gcs/sd_lsj/kohya_output,--display_name=sks_dog,--save_nfs=True" \
-  --command="python3,train_kohya.py"
+  --display-name=sd-kohya-test01   \
+  --config=vertex_a100_config_nfs.yaml   \
+  --args='--mixed_precision=fp16,--num_cpu_threads_per_process=2,"train_network.py",--enable_bucket,--pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5",--train_data_dir="/mnt/working_dir/img/",--resolution="512,512", --output_dir="/mnt/working_dir/output", --network_alpha="1", --save_model_as=safetensors, --network_module=networks.lora, --text_encoder_lr=5e-05, --unet_lr=0.0001, --network_dim=8, --output_name="last", --lr_scheduler_num_cycles="1", --learning_rate="0.0001", --lr_scheduler="cosine", --lr_warmup_steps="0", --train_batch_size="1", --max_train_steps="20", --mixed_precision="fp16", --save_precision="fp16", --cache_latents, --optimizer_type="AdamW8bit", --max_data_loader_n_workers="0", --bucket_reso_steps=64, --xformers, --bucket_no_upscale,'
+  --command="accelerate"
 
 # only save the models in GCS to Filestore
 gcloud ai custom-jobs create  \

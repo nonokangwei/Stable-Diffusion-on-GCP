@@ -1,8 +1,8 @@
 network: projects/886724937990/global/networks/myvpc-ipv6
 workerPoolSpecs:
     - machineSpec:
-        machineType: a2-highgpu-1g
-        acceleratorType: NVIDIA_TESLA_A100
+        machineType: g2-standard-4
+        acceleratorType: NVIDIA_L4
         acceleratorCount: 1
       diskSpec:
         bootDiskType: pd-ssd

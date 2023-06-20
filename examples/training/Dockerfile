@@ -12,5 +12,6 @@ RUN git clone https://github.com/bmaltais/kohya_ss.git
 RUN cd /kohya_ss/ && \
     python3 -m pip install -r /kohya_ss/requirements_unix.txt --prefer-binary
 RUN python3 -m pip install -U bitsandbytes --prefer-binary
+RUN apt install -y tree
 
 WORKDIR /kohya_ss/

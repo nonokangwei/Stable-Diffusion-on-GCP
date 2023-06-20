@@ -12,8 +12,8 @@ workerPoolSpecs:
         imageUri: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya
       nfsMounts:
         - server: 10.7.48.2
-          path: /vol2/working_dir
-          mountPoint: /mnt/working_dir
+          path: /vol2
+          mountPoint: /mnt
         # - server: 10.150.39.10
         #   path: /mnt/vol1/models/Stable-diffusion
         #   mountPoint: /mnt/vol1/models

@@ -13,7 +13,7 @@ workerPoolSpecs:
       nfsMounts:
         - server: 10.7.48.2
           path: /vol2
-          mountPoint: /mnt
+          mountPoint: /
         # - server: 10.150.39.10
         #   path: /mnt/vol1/models/Stable-diffusion
         #   mountPoint: /mnt/vol1/models

@@ -13,9 +13,9 @@ gcloud builds submit --config cloud-build-config-kohya.yaml .
 # --resolution='512,512'
 gcloud ai custom-jobs create  \
   --region=us-central1   \
-  --display-name=sd-kohya-test01  \
-  --config=vertex_a100_config_nfs.yaml   \
-  --args="launch,--num_cpu_threads_per_process=2,train_network.py,--enable_bucket,--pretrained_model_name_or_path=runwayml/stable-diffusion-v1-5,--resolution=512,--train_data_dir=/mnt/working_dir/img/,--output_dir=/mnt/working_dir/output,--network_alpha=1,--save_model_as=safetensors,--network_module=networks.lora,--text_encoder_lr=5e-05,--unet_lr=0.0001,--network_dim=8,--output_name=last,--lr_scheduler_num_cycles=1,--learning_rate=0.0001,--lr_scheduler=cosine,--lr_warmup_steps=0,--train_batch_size=1,--max_train_steps=20,--mixed_precision=fp16,--save_precision=fp16,--cache_latents,--optimizer_type=AdamW8bit,--max_data_loader_n_workers=0,--bucket_reso_steps=64,--xformers,--bucket_no_upscale" \
+  --display-name=sd-kohya-test02  \
+  --config=vertex_t4_config_nfs.yaml   \
+  --args="launch,--num_cpu_threads_per_process=2,train_network.py,--enable_bucket,--pretrained_model_name_or_path=runwayml/stable-diffusion-v1-5,--resolution=512,--train_data_dir=/mnt/nfs/working_dir/img/,--output_dir=/mnt/nfs/working_dir/output,--network_alpha=1,--save_model_as=safetensors,--network_module=networks.lora,--text_encoder_lr=5e-05,--unet_lr=0.0001,--network_dim=8,--output_name=last,--lr_scheduler_num_cycles=1,--learning_rate=0.0001,--lr_scheduler=cosine,--lr_warmup_steps=0,--train_batch_size=1,--max_train_steps=610,--mixed_precision=fp16,--save_precision=fp16,--cache_latents,--optimizer_type=AdamW8bit,--max_data_loader_n_workers=0,--bucket_reso_steps=64,--xformers,--bucket_no_upscale" \
   --command="python3,/usr/local/bin/accelerate"
 
 # Debug

@@ -13,4 +13,6 @@ RUN cd /kohya_ss/ && \
     python3 -m pip install -r /kohya_ss/requirements_unix.txt --prefer-binary
 RUN python3 -m pip install -U bitsandbytes --prefer-binary
 
+COPY debug.sh /kohya_ss/debug.sh
+
 WORKDIR /kohya_ss/

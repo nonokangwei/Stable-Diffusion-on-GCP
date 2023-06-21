@@ -23,8 +23,8 @@ gcloud ai custom-jobs create  \
   --region=us-central1   \
   --display-name=sd-kohya-debug  \
   --config=vertex_t4_config_nfs.yaml   \
-  --args="/mnt/working_dir/" \
-  --command="tree"
+  --args="" \
+  --command="bash,/kohya_ss/debug.sh"
 
 # only save the models in GCS to Filestore
 gcloud ai custom-jobs create  \

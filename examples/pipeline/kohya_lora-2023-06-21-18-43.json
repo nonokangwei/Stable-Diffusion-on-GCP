@@ -1,0 +1,571 @@
+{
+  "pipelineSpec": {
+    "components": {
+      "comp-condition-image-build-disable-2": {
+        "dag": {
+          "tasks": {
+            "custom-training-job-2": {
+              "cachingOptions": {
+                "enableCache": true
+              },
+              "componentRef": {
+                "name": "comp-custom-training-job-2"
+              },
+              "inputs": {
+                "parameters": {
+                  "base_output_directory": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "display_name": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "sd-model-training-2023-06-21-18-43"
+                      }
+                    }
+                  },
+                  "enable_web_access": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "false"
+                      }
+                    }
+                  },
+                  "encryption_spec_key_name": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "labels": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "{}"
+                      }
+                    }
+                  },
+                  "location": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "us-central1"
+                      }
+                    }
+                  },
+                  "network": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "projects/886724937990/global/networks/default"
+                      }
+                    }
+                  },
+                  "project": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "dave-selfstudy01"
+                      }
+                    }
+                  },
+                  "reserved_ip_ranges": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "[]"
+                      }
+                    }
+                  },
+                  "restart_job_on_worker_restart": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "false"
+                      }
+                    }
+                  },
+                  "service_account": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "tensorboard": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "timeout": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "604800s"
+                      }
+                    }
+                  },
+                  "worker_pool_specs": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "[{\"containerSpec\": {\"args\": [\"--method\", \"kohya_lora\", \"--model_name\", \"runwayml/stable-diffusion-v1-5\", \"--input_storage\", \"/mnt/nfs/working_dir/img/\", \"--output_storage\", \"/mnt/nfs/working_dir/output/\", \"--display_name\", \"pipeline_test_lora\", \"--lr\", \"0.0001\", \"--unet_lr\", \"0.00005\", \"--text_encoder_lr\", \"0.0001\", \"--lr_scheduler\", \"cosine_with_restarts\", \"--network_dim\", \"128\", \"--network_alpha\", \"64\", \"--batch_size\", \"1\", \"--save_every_n_epochs\", \"1\", \"--max_train_epochs\", \"10\"], \"imageUri\": \"us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya_test\"}, \"replicaCount\": 1, \"machineSpec\": {\"machineType\": \"n1-standard-4\", \"accelerator_type\": 5, \"accelerator_count\": 1}}]"
+                      }
+                    }
+                  }
+                }
+              },
+              "taskInfo": {
+                "name": "custom-training-job-2"
+              }
+            }
+          }
+        },
+        "inputDefinitions": {
+          "parameters": {
+            "pipelineparam--build_image": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-condition-image-build-enable-1": {
+        "dag": {
+          "tasks": {
+            "custom-training-job": {
+              "cachingOptions": {
+                "enableCache": true
+              },
+              "componentRef": {
+                "name": "comp-custom-training-job"
+              },
+              "dependentTasks": [
+                "image-build"
+              ],
+              "inputs": {
+                "parameters": {
+                  "base_output_directory": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "display_name": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "sd-model-training-2023-06-21-18-43"
+                      }
+                    }
+                  },
+                  "enable_web_access": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "false"
+                      }
+                    }
+                  },
+                  "encryption_spec_key_name": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "labels": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "{}"
+                      }
+                    }
+                  },
+                  "location": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "us-central1"
+                      }
+                    }
+                  },
+                  "network": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "projects/886724937990/global/networks/default"
+                      }
+                    }
+                  },
+                  "project": {
+                    "taskOutputParameter": {
+                      "outputParameterKey": "project_id",
+                      "producerTask": "image-build"
+                    }
+                  },
+                  "reserved_ip_ranges": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "[]"
+                      }
+                    }
+                  },
+                  "restart_job_on_worker_restart": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "false"
+                      }
+                    }
+                  },
+                  "service_account": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "tensorboard": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": ""
+                      }
+                    }
+                  },
+                  "timeout": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "604800s"
+                      }
+                    }
+                  },
+                  "worker_pool_specs": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "[{\"containerSpec\": {\"args\": [\"--method\", \"kohya_lora\", \"--model_name\", \"runwayml/stable-diffusion-v1-5\", \"--input_storage\", \"/mnt/nfs/working_dir/img/\", \"--output_storage\", \"/mnt/nfs/working_dir/output/\", \"--display_name\", \"pipeline_test_lora\", \"--lr\", \"0.0001\", \"--unet_lr\", \"0.00005\", \"--text_encoder_lr\", \"0.0001\", \"--lr_scheduler\", \"cosine_with_restarts\", \"--network_dim\", \"128\", \"--network_alpha\", \"64\", \"--batch_size\", \"1\", \"--save_every_n_epochs\", \"1\", \"--max_train_epochs\", \"10\"], \"imageUri\": \"us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya_test\"}, \"replicaCount\": 1, \"machineSpec\": {\"machineType\": \"n1-standard-4\", \"accelerator_type\": 5, \"accelerator_count\": 1}}]"
+                      }
+                    }
+                  }
+                }
+              },
+              "taskInfo": {
+                "name": "custom-training-job"
+              }
+            },
+            "image-build": {
+              "cachingOptions": {
+                "enableCache": true
+              },
+              "componentRef": {
+                "name": "comp-image-build"
+              },
+              "inputs": {
+                "parameters": {
+                  "image_uri": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya_test"
+                      }
+                    }
+                  },
+                  "project_id": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "dave-selfstudy01"
+                      }
+                    }
+                  },
+                  "region": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "us-central1"
+                      }
+                    }
+                  },
+                  "source_code_path": {
+                    "runtimeValue": {
+                      "constantValue": {
+                        "stringValue": "/gcs/hzchen-iowa/code"
+                      }
+                    }
+                  }
+                }
+              },
+              "taskInfo": {
+                "name": "image-build"
+              }
+            }
+          }
+        },
+        "inputDefinitions": {
+          "parameters": {
+            "pipelineparam--build_image": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-custom-training-job": {
+        "executorLabel": "exec-custom-training-job",
+        "inputDefinitions": {
+          "parameters": {
+            "base_output_directory": {
+              "type": "STRING"
+            },
+            "display_name": {
+              "type": "STRING"
+            },
+            "enable_web_access": {
+              "type": "STRING"
+            },
+            "encryption_spec_key_name": {
+              "type": "STRING"
+            },
+            "labels": {
+              "type": "STRING"
+            },
+            "location": {
+              "type": "STRING"
+            },
+            "network": {
+              "type": "STRING"
+            },
+            "project": {
+              "type": "STRING"
+            },
+            "reserved_ip_ranges": {
+              "type": "STRING"
+            },
+            "restart_job_on_worker_restart": {
+              "type": "STRING"
+            },
+            "service_account": {
+              "type": "STRING"
+            },
+            "tensorboard": {
+              "type": "STRING"
+            },
+            "timeout": {
+              "type": "STRING"
+            },
+            "worker_pool_specs": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "parameters": {
+            "gcp_resources": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-custom-training-job-2": {
+        "executorLabel": "exec-custom-training-job-2",
+        "inputDefinitions": {
+          "parameters": {
+            "base_output_directory": {
+              "type": "STRING"
+            },
+            "display_name": {
+              "type": "STRING"
+            },
+            "enable_web_access": {
+              "type": "STRING"
+            },
+            "encryption_spec_key_name": {
+              "type": "STRING"
+            },
+            "labels": {
+              "type": "STRING"
+            },
+            "location": {
+              "type": "STRING"
+            },
+            "network": {
+              "type": "STRING"
+            },
+            "project": {
+              "type": "STRING"
+            },
+            "reserved_ip_ranges": {
+              "type": "STRING"
+            },
+            "restart_job_on_worker_restart": {
+              "type": "STRING"
+            },
+            "service_account": {
+              "type": "STRING"
+            },
+            "tensorboard": {
+              "type": "STRING"
+            },
+            "timeout": {
+              "type": "STRING"
+            },
+            "worker_pool_specs": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "parameters": {
+            "gcp_resources": {
+              "type": "STRING"
+            }
+          }
+        }
+      },
+      "comp-image-build": {
+        "executorLabel": "exec-image-build",
+        "inputDefinitions": {
+          "parameters": {
+            "image_uri": {
+              "type": "STRING"
+            },
+            "project_id": {
+              "type": "STRING"
+            },
+            "region": {
+              "type": "STRING"
+            },
+            "source_code_path": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "parameters": {
+            "docker_repo_uri": {
+              "type": "STRING"
+            },
+            "project_id": {
+              "type": "STRING"
+            }
+          }
+        }
+      }
+    },
+    "deploymentSpec": {
+      "executors": {
+        "exec-custom-training-job": {
+          "container": {
+            "args": [
+              "--type",
+              "CustomJob",
+              "--payload",
+              "{\"display_name\": \"{{$.inputs.parameters['display_name']}}\", \"job_spec\": {\"worker_pool_specs\": {{$.inputs.parameters['worker_pool_specs']}}, \"scheduling\": {\"timeout\": \"{{$.inputs.parameters['timeout']}}\", \"restart_job_on_worker_restart\": \"{{$.inputs.parameters['restart_job_on_worker_restart']}}\"}, \"service_account\": \"{{$.inputs.parameters['service_account']}}\", \"tensorboard\": \"{{$.inputs.parameters['tensorboard']}}\", \"enable_web_access\": \"{{$.inputs.parameters['enable_web_access']}}\", \"network\": \"{{$.inputs.parameters['network']}}\", \"reserved_ip_ranges\": {{$.inputs.parameters['reserved_ip_ranges']}}, \"base_output_directory\": {\"output_uri_prefix\": \"{{$.inputs.parameters['base_output_directory']}}\"}}, \"labels\": {{$.inputs.parameters['labels']}}, \"encryption_spec\": {\"kms_key_name\":\"{{$.inputs.parameters['encryption_spec_key_name']}}\"}}",
+              "--project",
+              "{{$.inputs.parameters['project']}}",
+              "--location",
+              "{{$.inputs.parameters['location']}}",
+              "--gcp_resources",
+              "{{$.outputs.parameters['gcp_resources'].output_file}}"
+            ],
+            "command": [
+              "python3",
+              "-u",
+              "-m",
+              "google_cloud_pipeline_components.container.v1.custom_job.launcher"
+            ],
+            "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:1.0.42"
+          }
+        },
+        "exec-custom-training-job-2": {
+          "container": {
+            "args": [
+              "--type",
+              "CustomJob",
+              "--payload",
+              "{\"display_name\": \"{{$.inputs.parameters['display_name']}}\", \"job_spec\": {\"worker_pool_specs\": {{$.inputs.parameters['worker_pool_specs']}}, \"scheduling\": {\"timeout\": \"{{$.inputs.parameters['timeout']}}\", \"restart_job_on_worker_restart\": \"{{$.inputs.parameters['restart_job_on_worker_restart']}}\"}, \"service_account\": \"{{$.inputs.parameters['service_account']}}\", \"tensorboard\": \"{{$.inputs.parameters['tensorboard']}}\", \"enable_web_access\": \"{{$.inputs.parameters['enable_web_access']}}\", \"network\": \"{{$.inputs.parameters['network']}}\", \"reserved_ip_ranges\": {{$.inputs.parameters['reserved_ip_ranges']}}, \"base_output_directory\": {\"output_uri_prefix\": \"{{$.inputs.parameters['base_output_directory']}}\"}}, \"labels\": {{$.inputs.parameters['labels']}}, \"encryption_spec\": {\"kms_key_name\":\"{{$.inputs.parameters['encryption_spec_key_name']}}\"}}",
+              "--project",
+              "{{$.inputs.parameters['project']}}",
+              "--location",
+              "{{$.inputs.parameters['location']}}",
+              "--gcp_resources",
+              "{{$.outputs.parameters['gcp_resources'].output_file}}"
+            ],
+            "command": [
+              "python3",
+              "-u",
+              "-m",
+              "google_cloud_pipeline_components.container.v1.custom_job.launcher"
+            ],
+            "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:1.0.42"
+          }
+        },
+        "exec-image-build": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "image_build"
+            ],
+            "command": [
+              "sh",
+              "-c",
+              "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'kfp==1.8.20' && \"$0\" \"$@\"\n",
+              "sh",
+              "-ec",
+              "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.v2.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+              "\nimport kfp\nfrom kfp.v2 import dsl\nfrom kfp.v2.dsl import *\nfrom typing import *\n\ndef image_build(\n    project_id: str,\n    region: str,\n    source_code_path: str,\n    image_uri: str\n) -> NamedTuple('Outputs', [('docker_repo_uri', str),('project_id', str)]):\n    import subprocess\n    project_id = project_id\n    location = region\n    code_path = f\"{source_code_path}\"\n    api_enable_cmd = \"gcloud services enable artifactregistry.googleapis.com\"\n    print(\"enable artifact registry API\")\n    api_enable_process = subprocess.Popen(api_enable_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n    api_enable_process.wait()\n    print(\"starting cloud build job\")\n    image_uri = image_uri\n    build_step = f\"\"\"steps:\n- name: 'gcr.io/cloud-builders/docker'\n  args: [ 'build', '-f', 'Dockerfile_kohya', '-t', '{image_uri}', '.' ]\n- name: 'gcr.io/cloud-builders/docker'\n  args: ['push', '{image_uri}']\noptions:\n  machineType: 'N1_HIGHCPU_8'\n  diskSizeGb: '200'\"\"\"\n    build_file = open(f\"{code_path}/cloud-build-config.yaml\", \"wt\")\n    build_file.write(build_step)\n    build_file.close()\n    print(f\"write build file to {code_path}\")\n    build_cmd = f\"cd {code_path} && gcloud config set project {project_id} && gcloud builds submit --config cloud-build-config.yaml .\"\n    build_process = subprocess.Popen(build_cmd, shell=True, stdout=None, stderr=None)\n    build_process.wait()\n    build_returncode = build_process.returncode\n    if(build_returncode == 0):\n        print(f\"cloud build job sucessed\")\n        print(f\"docker image push to {image_uri}\")\n        return (image_uri, project_id)\n    else:\n        print(f\"cloud build job failed\")\n\n"
+            ],
+            "image": "google/cloud-sdk"
+          }
+        }
+      }
+    },
+    "pipelineInfo": {
+      "name": "sd-model-training-pipeline"
+    },
+    "root": {
+      "dag": {
+        "tasks": {
+          "condition-image-build-disable-2": {
+            "componentRef": {
+              "name": "comp-condition-image-build-disable-2"
+            },
+            "inputs": {
+              "parameters": {
+                "pipelineparam--build_image": {
+                  "componentInputParameter": "build_image"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "condition-image-build-disable-2"
+            },
+            "triggerPolicy": {
+              "condition": "inputs.parameters['pipelineparam--build_image'].string_value == 'False'"
+            }
+          },
+          "condition-image-build-enable-1": {
+            "componentRef": {
+              "name": "comp-condition-image-build-enable-1"
+            },
+            "inputs": {
+              "parameters": {
+                "pipelineparam--build_image": {
+                  "componentInputParameter": "build_image"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "condition-image-build-enable-1"
+            },
+            "triggerPolicy": {
+              "condition": "inputs.parameters['pipelineparam--build_image'].string_value == 'True'"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "build_image": {
+            "type": "STRING"
+          }
+        }
+      }
+    },
+    "schemaVersion": "2.0.0",
+    "sdkVersion": "kfp-1.8.20"
+  },
+  "runtimeConfig": {
+    "gcsOutputDirectory": "gs://hzchen-iowa/pipeline_root/kohya_lora"
+  }
+}

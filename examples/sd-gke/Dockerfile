@@ -45,10 +45,10 @@ RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-segmen
 
 EXPOSE 7860
 
-#COPY extensions/ /stable-diffusion-webui/extensions/
+COPY extensions/ /stable-diffusion-webui/extensions/
 #COPY user-watch.py /stable-diffusion-webui/user-watch.py
 #COPY start.sh /stable-diffusion-webui/start.sh
-#COPY *.json /stable-diffusion-webui/
+COPY *.json /stable-diffusion-webui/
 
 WORKDIR /stable-diffusion-webui/
 CMD ["python3", "webui.py", "--listen", "--xformers", "--enable-insecure-extension-access", "--api"]

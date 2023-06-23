@@ -12,7 +12,7 @@ RUN python3 -m pip install git+https://github.com/openai/CLIP.git@d50d76daa67028
 RUN python3 -m pip install git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b --prefer-binary
 RUN python3 -m pip install xformers --prefer-binary
 RUN python3 -m pip install pyngrok --prefer-binary
-RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+RUN git -C https://github.com/AUTOMATIC1111/stable-diffusion-webui.git checkout 89f9faa63388756314e8a1d96cf86bf5e0663045
 RUN git clone https://github.com/Stability-AI/stablediffusion.git /stable-diffusion-webui/repositories/stable-diffusion-stability-ai
 RUN git -C /stable-diffusion-webui/repositories/stable-diffusion-stability-ai checkout cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf
 RUN git clone https://github.com/CompVis/taming-transformers.git /stable-diffusion-webui/repositories/taming-transformers
@@ -32,7 +32,7 @@ RUN set -ex && cd stable-diffusion-webui \
     && git clone https://github.com/toriato/stable-diffusion-webui-wd14-tagger.git extensions/stable-diffusion-webui-wd14-tagger \
     && git clone https://github.com/DominikDoom/a1111-sd-webui-tagcomplete.git extensions/a1111-sd-webui-tagcomplete \
     && git clone https://github.com/Mikubill/sd-webui-controlnet.git extensions/sd-webui-controlnet \
-    && git clone https://github.com/zanllp/sd-webui-infinite-image-browsing.git extensions/sd-webui-infinite-image-browsing \
+    && git -C https://github.com/zanllp/sd-webui-infinite-image-browsing.git extensions/sd-webui-infinite-image-browsing checkout 4720b15126c3ee05e97d50108050d1178e50639b \
     && git clone https://github.com/aria1th/Hypernetwork-MonkeyPatch-Extension.git extensions/Hypernetwork-MonkeyPatch-Extension \
     && git clone https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper.git extensions/Stable-Diffusion-Webui-Civitai-Helper \
     && git clone https://github.com/ilian6806/stable-diffusion-webui-state.git extensions/stable-diffusion-webui-state \
@@ -45,9 +45,8 @@ EXPOSE 7860
 
 COPY extensions/ /stable-diffusion-webui/extensions/
 COPY user-watch.py /stable-diffusion-webui/user-watch.py
-COPY prelogin.py /stable-diffusion-webui/prelogin.py
 COPY start.sh /stable-diffusion-webui/start.sh
 COPY *.json /stable-diffusion-webui/
 
 WORKDIR /stable-diffusion-webui/
-CMD ["python3", "webui.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access"]
+CMD ["python3", "webui.py", "--listen", "--xformers", "--enable-insecure-extension-access", "--api"]

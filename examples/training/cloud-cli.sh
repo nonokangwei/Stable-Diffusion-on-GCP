@@ -27,9 +27,9 @@ gcloud ai custom-jobs create  \
   --command="bash,/kohya_ss/debug.sh"
 
 # only save the models in GCS to Filestore
-gcloud ai custom-jobs create  \
-  --region=us-central1   \
-  --display-name=sd-kohya   \
-  --config=vertex-config-nfs.yaml   \
-  --args="--output_storage=/gcs/sd_lsj/kohya_output,--save_nfs_only=True" \
-  --command="python3,train_kohya.py"
+# gcloud ai custom-jobs create  \
+#   --region=us-central1   \
+#   --display-name=sd-kohya   \
+#   --config=vertex-config-nfs.yaml   \
+#   --args="--output_storage=/gcs/sd_lsj/kohya_output,--save_nfs_only=True" \
+#   --command="python3,train_kohya.py"

@@ -167,5 +167,6 @@
     "disabled_extensions": [],
     "disable_all_extensions": "none",
     "restore_config_state_file": "",
-    "sd_checkpoint_hash": ""
+    "sd_checkpoint_hash": "",
+    "control_net_max_models_num": 3,
 }

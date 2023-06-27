@@ -7,6 +7,7 @@ if not key then
         ngx.log(ngx.INFO, "health check success!")
         ngx.say("health check success!")
         return ngx.exit(200)
+    end
     ngx.log(ngx.ERR, "no iap user identity found")
     ngx.status = 400
     ngx.say("fail to fetch user identity!")

@@ -31,7 +31,7 @@ VPC_NETWORK=<replace this with your vpc network name>
 VPC_SUBNETWORK=<replace this with your vpc subnetwork name>
 
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.11-gke.1000" --release-channel "None" \
+    --no-enable-basic-auth --release-channel "None" \
     --machine-type "e2-standard-2" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \

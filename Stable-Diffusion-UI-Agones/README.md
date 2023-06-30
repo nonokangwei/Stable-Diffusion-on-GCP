@@ -179,7 +179,7 @@ gcloud scheduler jobs create http sd-agones-cruiser \
 This function is used to handle Stable Diffusion POD Creation request, when the user init the access to the env, it will trigger this function to create a Stable Diffusion POD.
 Record the GKE Cluster API Server Endpoint IP address
 ```
-gcloud container clusters describe sdagonesnew --region us-central1 --format=json | jq .privateClusterConfig.publicEndpoint
+gcloud container clusters describe ${GKE_CLUSTER_NAME} --region us-central1 --format=json | jq .privateClusterConfig.publicEndpoint
 ```
 Update the gs.yaml file with the Stable-Diffusion-WebUI docker image url and simple-game-server docker image url
 ```

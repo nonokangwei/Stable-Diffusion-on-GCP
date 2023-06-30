@@ -57,7 +57,7 @@ RUN set -ex && cd stable-diffusion-webui \
 RUN . /root/.bashrc \
     && python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
 
-COPY extensions/ /stable-diffusion-webui/extensions/
+# COPY extensions/ /stable-diffusion-webui/extensions/
 # COPY user-watch.py /stable-diffusion-webui/user-watch.py
 # COPY start.sh /stable-diffusion-webui/start.sh
 COPY *.json /stable-diffusion-webui/
@@ -65,4 +65,4 @@ COPY *.json /stable-diffusion-webui/
 EXPOSE 7860
 
 WORKDIR /stable-diffusion-webui/
-CMD ["conda", "run", "--no-capture-output", "-n", "sd-webui", "python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access", "--api"]
+CMD ["conda", "run", "--no-capture-output", "-n", "sd-webui", "python3", "launch.py", "--listen", "--xformers", "--medvram", "--enable-insecure-extension-access"]

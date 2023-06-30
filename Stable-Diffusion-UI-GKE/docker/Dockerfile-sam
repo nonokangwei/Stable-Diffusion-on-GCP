@@ -1,5 +1,5 @@
-FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
-# FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+# FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
@@ -37,11 +37,11 @@ RUN set -ex && cd stable-diffusion-webui \
     && git -C /stable-diffusion-webui/extensions/sd-webui-infinite-image-browsing checkout 4720b15126c3ee05e97d50108050d1178e50639b \
     && git clone https://github.com/aria1th/Hypernetwork-MonkeyPatch-Extension.git extensions/Hypernetwork-MonkeyPatch-Extension \
     && git clone https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper.git extensions/Stable-Diffusion-Webui-Civitai-Helper \
-    && git clone https://github.com/ilian6806/stable-diffusion-webui-state.git extensions/stable-diffusion-webui-state
-    # && git clone https://github.com/continue-revolution/sd-webui-segment-anything extensions/sd-webui-segment-anything
+    && git clone https://github.com/ilian6806/stable-diffusion-webui-state.git extensions/stable-diffusion-webui-state \
+    && git clone https://github.com/continue-revolution/sd-webui-segment-anything extensions/sd-webui-segment-anything
 
 RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
-# RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-segment-anything/requirements.txt --prefer-binary
+RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-segment-anything/requirements.txt --prefer-binary
 
 EXPOSE 7860
 

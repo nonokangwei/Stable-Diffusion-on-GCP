@@ -134,14 +134,6 @@ docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/simple-
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/simple-game-server:0.1
 ```
 
-### Deploy stable-diffusion agones deployment
-Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
-```
-kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
-<!-- kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_pvc.yaml -->
-<!-- kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones/fleet_autoscale.yaml -->
-```
-
 ### Prepare Cloud Function Serverless VPC Access
 Create serverless VPC access connector, which is used by cloud function to connect the private connection endpoint.
 ```
@@ -208,6 +200,7 @@ cd ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/agones-relay-http/deploy
 # update the install.yaml
 # change the  <agones-relay-http-image> to the image you build in previous step
 # change the <cloud-function-state-controller-url> to the cloud function state controller url
+kubectl apply -f install.yaml
 ```
 
 ### Build nginx proxy image
@@ -222,6 +215,12 @@ gcloud functions describe agones_gs_backend --region us-central1 --format=json |
 cd Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx
 docker build . -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${BUILD_REGIST}/sd-nginx:0.1
+```
+
+### Deploy stable-diffusion agones deployment
+Deploy stable-diffusion agones deployment, please replace the image URL in the deployment.yaml and fleet yaml with the image built before.
+```
+kubectl apply -f ./Stable-Diffusion-on-GCP/Stable-Diffusion-UI-Agones/nginx/deployment.yaml
 ```
 
 ### Deploy IAP(identity awared proxy)

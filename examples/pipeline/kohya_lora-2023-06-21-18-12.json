@@ -1,0 +1,581 @@
+{
+  "components": {
+    "comp-condition-1": {
+      "dag": {
+        "tasks": {
+          "custom-training-job": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-custom-training-job"
+            },
+            "dependentTasks": [
+              "image-build"
+            ],
+            "inputs": {
+              "parameters": {
+                "display_name": {
+                  "runtimeValue": {
+                    "constant": "sd-model-training-2023-06-21-18-12"
+                  }
+                },
+                "network": {
+                  "runtimeValue": {
+                    "constant": "projects/153260248093/global/networks/default"
+                  }
+                },
+                "project": {
+                  "taskOutputParameter": {
+                    "outputParameterKey": "project_id",
+                    "producerTask": "image-build"
+                  }
+                },
+                "worker_pool_specs": {
+                  "runtimeValue": {
+                    "constant": [
+                      {
+                        "containerSpec": {
+                          "args": [
+                            "--method",
+                            "kohya_lora",
+                            "--model_name",
+                            "runwayml/stable-diffusion-v1-5",
+                            "--input_storage",
+                            "/mnt/nfs/working_dir/img/",
+                            "--output_storage",
+                            "/mnt/nfs/working_dir/output/",
+                            "--display_name",
+                            "pipeline_test_lora",
+                            "--lr",
+                            "0.0001",
+                            "--unet_lr",
+                            "0.00005",
+                            "--text_encoder_lr",
+                            "0.0001",
+                            "--lr_scheduler",
+                            "cosine_with_restarts",
+                            "--network_dim",
+                            "128",
+                            "--network_alpha",
+                            "64",
+                            "--batch_size",
+                            "1",
+                            "--save_every_n_epochs",
+                            "1",
+                            "--max_train_epochs",
+                            "10"
+                          ],
+                          "imageUri": "us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya_test"
+                        },
+                        "machineSpec": {
+                          "accelerator_count": 1.0,
+                          "accelerator_type": 5.0,
+                          "machineType": "n1-standard-4"
+                        },
+                        "nfsMounts": [
+                          {
+                            "mountPoint": "/",
+                            "path": "/vol2",
+                            "server": "10.7.48.2"
+                          }
+                        ],
+                        "replicaCount": "1"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "custom-training-job"
+            }
+          },
+          "image-build": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-image-build"
+            },
+            "inputs": {
+              "parameters": {
+                "image_uri": {
+                  "runtimeValue": {
+                    "constant": "us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya_test"
+                  }
+                },
+                "project_id": {
+                  "runtimeValue": {
+                    "constant": "dave-selfstudy01"
+                  }
+                },
+                "region": {
+                  "runtimeValue": {
+                    "constant": "us-central1"
+                  }
+                },
+                "source_code_path": {
+                  "runtimeValue": {
+                    "constant": "/gcs/hzchen-iowa/code"
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "image-build"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "pipelinechannel--build_image": {
+            "parameterType": "BOOLEAN"
+          }
+        }
+      }
+    },
+    "comp-condition-2": {
+      "dag": {
+        "tasks": {
+          "custom-training-job-2": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-custom-training-job-2"
+            },
+            "inputs": {
+              "parameters": {
+                "display_name": {
+                  "runtimeValue": {
+                    "constant": "sd-model-training-2023-06-21-18-12"
+                  }
+                },
+                "network": {
+                  "runtimeValue": {
+                    "constant": "projects/153260248093/global/networks/default"
+                  }
+                },
+                "project": {
+                  "runtimeValue": {
+                    "constant": "dave-selfstudy01"
+                  }
+                },
+                "worker_pool_specs": {
+                  "runtimeValue": {
+                    "constant": [
+                      {
+                        "containerSpec": {
+                          "args": [
+                            "--method",
+                            "kohya_lora",
+                            "--model_name",
+                            "runwayml/stable-diffusion-v1-5",
+                            "--input_storage",
+                            "/mnt/nfs/working_dir/img/",
+                            "--output_storage",
+                            "/mnt/nfs/working_dir/output/",
+                            "--display_name",
+                            "pipeline_test_lora",
+                            "--lr",
+                            "0.0001",
+                            "--unet_lr",
+                            "0.00005",
+                            "--text_encoder_lr",
+                            "0.0001",
+                            "--lr_scheduler",
+                            "cosine_with_restarts",
+                            "--network_dim",
+                            "128",
+                            "--network_alpha",
+                            "64",
+                            "--batch_size",
+                            "1",
+                            "--save_every_n_epochs",
+                            "1",
+                            "--max_train_epochs",
+                            "10"
+                          ],
+                          "imageUri": "us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-training:kohya_test"
+                        },
+                        "machineSpec": {
+                          "accelerator_count": 1.0,
+                          "accelerator_type": 5.0,
+                          "machineType": "n1-standard-4"
+                        },
+                        "nfsMounts": [
+                          {
+                            "mountPoint": "/",
+                            "path": "/vol2",
+                            "server": "10.7.48.2"
+                          }
+                        ],
+                        "replicaCount": "1"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "custom-training-job-2"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "pipelinechannel--build_image": {
+            "parameterType": "BOOLEAN"
+          }
+        }
+      }
+    },
+    "comp-custom-training-job": {
+      "executorLabel": "exec-custom-training-job",
+      "inputDefinitions": {
+        "parameters": {
+          "base_output_directory": {
+            "defaultValue": "",
+            "description": "The Cloud Storage location to store the output of\nthis CustomJob or HyperparameterTuningJob. See `more information\n<https://cloud.google.com/vertex-ai/docs/reference/rest/v1/GcsDestination>`_.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "display_name": {
+            "description": "The name of the CustomJob.",
+            "parameterType": "STRING"
+          },
+          "enable_web_access": {
+            "defaultValue": false,
+            "description": "Whether you want Vertex AI to enable `interactive shell\naccess\n<https://cloud.google.com/vertex-ai/docs/training/monitor-debug-interactive-shell>`_\nto training containers. If ``True``, you can access interactive shells at\nthe URIs given by [CustomJob.web_access_uris][].",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "encryption_spec_key_name": {
+            "defaultValue": "",
+            "description": "Customer-managed encryption key options for the\nCustomJob. If this is set, then all resources created by the CustomJob\nwill be encrypted with the provided encryption key.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "labels": {
+            "defaultValue": {},
+            "description": "The labels with user-defined metadata to organize the CustomJob. See\n`more information <https://goo.gl/xmQnxf>`_.",
+            "isOptional": true,
+            "parameterType": "STRUCT"
+          },
+          "location": {
+            "defaultValue": "us-central1",
+            "description": "Location for creating the custom training job.\nIf not set, default to us-central1.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "network": {
+            "defaultValue": "",
+            "description": "The full name of the Compute Engine network to which the job should\nbe peered. For example, ``projects/12345/global/networks/myVPC``. Format\nis of the form ``projects/{project}/global/networks/{network}``. Where\n``{project}`` is a project number, as in ``12345``, and ``{network}`` is a\nnetwork name. Private services access must already be configured for the\nnetwork. If left unspecified, the job is not peered with any network.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "Project to create the custom training job in.",
+            "parameterType": "STRING"
+          },
+          "reserved_ip_ranges": {
+            "defaultValue": [],
+            "description": "A list of names for the reserved IP ranges under the VPC\nnetwork that can be used for this job. If set, we will deploy the job\nwithin the provided IP ranges. Otherwise, the job will be deployed to any\nIP ranges under the provided VPC network.",
+            "isOptional": true,
+            "parameterType": "LIST"
+          },
+          "restart_job_on_worker_restart": {
+            "defaultValue": false,
+            "description": "Restarts the entire CustomJob if a worker\ngets restarted. This feature can be used by distributed training jobs that\nare not resilient to workers leaving and joining a job.",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "service_account": {
+            "defaultValue": "",
+            "description": "Sets the default service account for workload run-as\naccount. The `service account\n<https://cloud.google.com/vertex-ai/docs/pipelines/configure-project#service-account>`_\nrunning the pipeline submitting jobs must have act-as permission on this\nrun-as account. If unspecified, the Vertex AI Custom Code `Service Agent\n<https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents>`_\nfor the CustomJob's project.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "tensorboard": {
+            "defaultValue": "",
+            "description": "The name of a Vertex AI Tensorboard resource to which this\nCustomJob will upload Tensorboard logs.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "timeout": {
+            "defaultValue": "604800s",
+            "description": "The maximum job running time. The default is 7 days. A duration in\nseconds with up to nine fractional digits, terminated by 's', for example:\n\"3.5s\".",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "worker_pool_specs": {
+            "defaultValue": [],
+            "description": "Serialized json spec of the\nworker pools including machine type and Docker image. All worker pools\nexcept the first one are optional and can be skipped by providing an\nempty value. See `more information <https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#WorkerPoolSpec>`_.",
+            "isOptional": true,
+            "parameterType": "LIST"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "gcp_resources": {
+            "description": "Serialized JSON of ``gcp_resources`` `proto <https://github.com/kubeflow/pipelines/tree/master/components/google-cloud/google_cloud_pipeline_components/proto>`_ which tracks the CustomJob.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-custom-training-job-2": {
+      "executorLabel": "exec-custom-training-job-2",
+      "inputDefinitions": {
+        "parameters": {
+          "base_output_directory": {
+            "defaultValue": "",
+            "description": "The Cloud Storage location to store the output of\nthis CustomJob or HyperparameterTuningJob. See `more information\n<https://cloud.google.com/vertex-ai/docs/reference/rest/v1/GcsDestination>`_.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "display_name": {
+            "description": "The name of the CustomJob.",
+            "parameterType": "STRING"
+          },
+          "enable_web_access": {
+            "defaultValue": false,
+            "description": "Whether you want Vertex AI to enable `interactive shell\naccess\n<https://cloud.google.com/vertex-ai/docs/training/monitor-debug-interactive-shell>`_\nto training containers. If ``True``, you can access interactive shells at\nthe URIs given by [CustomJob.web_access_uris][].",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "encryption_spec_key_name": {
+            "defaultValue": "",
+            "description": "Customer-managed encryption key options for the\nCustomJob. If this is set, then all resources created by the CustomJob\nwill be encrypted with the provided encryption key.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "labels": {
+            "defaultValue": {},
+            "description": "The labels with user-defined metadata to organize the CustomJob. See\n`more information <https://goo.gl/xmQnxf>`_.",
+            "isOptional": true,
+            "parameterType": "STRUCT"
+          },
+          "location": {
+            "defaultValue": "us-central1",
+            "description": "Location for creating the custom training job.\nIf not set, default to us-central1.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "network": {
+            "defaultValue": "",
+            "description": "The full name of the Compute Engine network to which the job should\nbe peered. For example, ``projects/12345/global/networks/myVPC``. Format\nis of the form ``projects/{project}/global/networks/{network}``. Where\n``{project}`` is a project number, as in ``12345``, and ``{network}`` is a\nnetwork name. Private services access must already be configured for the\nnetwork. If left unspecified, the job is not peered with any network.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "project": {
+            "description": "Project to create the custom training job in.",
+            "parameterType": "STRING"
+          },
+          "reserved_ip_ranges": {
+            "defaultValue": [],
+            "description": "A list of names for the reserved IP ranges under the VPC\nnetwork that can be used for this job. If set, we will deploy the job\nwithin the provided IP ranges. Otherwise, the job will be deployed to any\nIP ranges under the provided VPC network.",
+            "isOptional": true,
+            "parameterType": "LIST"
+          },
+          "restart_job_on_worker_restart": {
+            "defaultValue": false,
+            "description": "Restarts the entire CustomJob if a worker\ngets restarted. This feature can be used by distributed training jobs that\nare not resilient to workers leaving and joining a job.",
+            "isOptional": true,
+            "parameterType": "BOOLEAN"
+          },
+          "service_account": {
+            "defaultValue": "",
+            "description": "Sets the default service account for workload run-as\naccount. The `service account\n<https://cloud.google.com/vertex-ai/docs/pipelines/configure-project#service-account>`_\nrunning the pipeline submitting jobs must have act-as permission on this\nrun-as account. If unspecified, the Vertex AI Custom Code `Service Agent\n<https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents>`_\nfor the CustomJob's project.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "tensorboard": {
+            "defaultValue": "",
+            "description": "The name of a Vertex AI Tensorboard resource to which this\nCustomJob will upload Tensorboard logs.",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "timeout": {
+            "defaultValue": "604800s",
+            "description": "The maximum job running time. The default is 7 days. A duration in\nseconds with up to nine fractional digits, terminated by 's', for example:\n\"3.5s\".",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "worker_pool_specs": {
+            "defaultValue": [],
+            "description": "Serialized json spec of the\nworker pools including machine type and Docker image. All worker pools\nexcept the first one are optional and can be skipped by providing an\nempty value. See `more information <https://cloud.google.com/vertex-ai/docs/reference/rest/v1/CustomJobSpec#WorkerPoolSpec>`_.",
+            "isOptional": true,
+            "parameterType": "LIST"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "gcp_resources": {
+            "description": "Serialized JSON of ``gcp_resources`` `proto <https://github.com/kubeflow/pipelines/tree/master/components/google-cloud/google_cloud_pipeline_components/proto>`_ which tracks the CustomJob.",
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
+    "comp-image-build": {
+      "executorLabel": "exec-image-build",
+      "inputDefinitions": {
+        "parameters": {
+          "image_uri": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          },
+          "region": {
+            "parameterType": "STRING"
+          },
+          "source_code_path": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "parameters": {
+          "docker_repo_uri": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    }
+  },
+  "defaultPipelineRoot": "gs://hzchen-iowa/pipeline_root/kohya_lora",
+  "deploymentSpec": {
+    "executors": {
+      "exec-custom-training-job": {
+        "container": {
+          "args": [
+            "--type",
+            "CustomJob",
+            "--payload",
+            "{\"display_name\": \"{{$.inputs.parameters['display_name']}}\", \"job_spec\": {\"worker_pool_specs\": {{$.inputs.parameters['worker_pool_specs']}}, \"scheduling\": {\"timeout\": \"{{$.inputs.parameters['timeout']}}\", \"restart_job_on_worker_restart\": {{$.inputs.parameters['restart_job_on_worker_restart']}}}, \"service_account\": \"{{$.inputs.parameters['service_account']}}\", \"tensorboard\": \"{{$.inputs.parameters['tensorboard']}}\", \"enable_web_access\": {{$.inputs.parameters['enable_web_access']}}, \"network\": \"{{$.inputs.parameters['network']}}\", \"reserved_ip_ranges\": {{$.inputs.parameters['reserved_ip_ranges']}}, \"base_output_directory\": {\"output_uri_prefix\": \"{{$.inputs.parameters['base_output_directory']}}\"}}, \"labels\": {{$.inputs.parameters['labels']}}, \"encryption_spec_key_name\": {\"kms_key_name\": \"{{$.inputs.parameters['encryption_spec_key_name']}}\"}}",
+            "--project",
+            "{{$.inputs.parameters['project']}}",
+            "--location",
+            "{{$.inputs.parameters['location']}}",
+            "--gcp_resources",
+            "{{$.outputs.parameters['gcp_resources'].output_file}}"
+          ],
+          "command": [
+            "python3",
+            "-u",
+            "-m",
+            "google_cloud_pipeline_components.container.v1.custom_job.launcher"
+          ],
+          "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:2.0.0"
+        }
+      },
+      "exec-custom-training-job-2": {
+        "container": {
+          "args": [
+            "--type",
+            "CustomJob",
+            "--payload",
+            "{\"display_name\": \"{{$.inputs.parameters['display_name']}}\", \"job_spec\": {\"worker_pool_specs\": {{$.inputs.parameters['worker_pool_specs']}}, \"scheduling\": {\"timeout\": \"{{$.inputs.parameters['timeout']}}\", \"restart_job_on_worker_restart\": {{$.inputs.parameters['restart_job_on_worker_restart']}}}, \"service_account\": \"{{$.inputs.parameters['service_account']}}\", \"tensorboard\": \"{{$.inputs.parameters['tensorboard']}}\", \"enable_web_access\": {{$.inputs.parameters['enable_web_access']}}, \"network\": \"{{$.inputs.parameters['network']}}\", \"reserved_ip_ranges\": {{$.inputs.parameters['reserved_ip_ranges']}}, \"base_output_directory\": {\"output_uri_prefix\": \"{{$.inputs.parameters['base_output_directory']}}\"}}, \"labels\": {{$.inputs.parameters['labels']}}, \"encryption_spec_key_name\": {\"kms_key_name\": \"{{$.inputs.parameters['encryption_spec_key_name']}}\"}}",
+            "--project",
+            "{{$.inputs.parameters['project']}}",
+            "--location",
+            "{{$.inputs.parameters['location']}}",
+            "--gcp_resources",
+            "{{$.outputs.parameters['gcp_resources'].output_file}}"
+          ],
+          "command": [
+            "python3",
+            "-u",
+            "-m",
+            "google_cloud_pipeline_components.container.v1.custom_job.launcher"
+          ],
+          "image": "gcr.io/ml-pipeline/google-cloud-pipeline-components:2.0.0"
+        }
+      },
+      "exec-image-build": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "image_build"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet     --no-warn-script-location 'kfp==2.0.1' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef image_build(\n    project_id: str,\n    region: str,\n    source_code_path: str,\n    image_uri: str\n) -> NamedTuple('Outputs', [('docker_repo_uri', str),('project_id', str)]):\n    import subprocess\n    project_id = project_id\n    location = region\n    code_path = f\"{source_code_path}\"\n    api_enable_cmd = \"gcloud services enable artifactregistry.googleapis.com\"\n    print(\"enable artifact registry API\")\n    api_enable_process = subprocess.Popen(api_enable_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)\n    api_enable_process.wait()\n    print(\"starting cloud build job\")\n    image_uri = image_uri\n    build_step = f\"\"\"steps:\n- name: 'gcr.io/cloud-builders/docker'\n  args: [ 'build', '-f', 'Dockerfile_kohya', '-t', '{image_uri}', '.' ]\n- name: 'gcr.io/cloud-builders/docker'\n  args: ['push', '{image_uri}']\noptions:\n  machineType: 'N1_HIGHCPU_8'\n  diskSizeGb: '200'\"\"\"\n    build_file = open(f\"{code_path}/cloud-build-config.yaml\", \"wt\")\n    build_file.write(build_step)\n    build_file.close()\n    print(f\"write build file to {code_path}\")\n    build_cmd = f\"cd {code_path} && gcloud config set project {project_id} && gcloud builds submit --config cloud-build-config.yaml .\"\n    build_process = subprocess.Popen(build_cmd, shell=True, stdout=None, stderr=None)\n    build_process.wait()\n    build_returncode = build_process.returncode\n    if(build_returncode == 0):\n        print(f\"cloud build job sucessed\")\n        print(f\"docker image push to {image_uri}\")\n        return (image_uri, project_id)\n    else:\n        print(f\"cloud build job failed\")\n\n"
+          ],
+          "image": "google/cloud-sdk"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "name": "sd-model-training-pipeline"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "condition-1": {
+          "componentRef": {
+            "name": "comp-condition-1"
+          },
+          "inputs": {
+            "parameters": {
+              "pipelinechannel--build_image": {
+                "componentInputParameter": "build_image"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "image_build_enable"
+          },
+          "triggerPolicy": {
+            "condition": "'inputs.parameter_values['pipelinechannel--build_image']' == 'True'"
+          }
+        },
+        "condition-2": {
+          "componentRef": {
+            "name": "comp-condition-2"
+          },
+          "inputs": {
+            "parameters": {
+              "pipelinechannel--build_image": {
+                "componentInputParameter": "build_image"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "image_build_disable"
+          },
+          "triggerPolicy": {
+            "condition": "'inputs.parameter_values['pipelinechannel--build_image']' == 'False'"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "build_image": {
+          "parameterType": "BOOLEAN"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.0.1"
+}

@@ -104,3 +104,11 @@ kubectl scale --replicas=1 stable-diffusion-deployment
 ```
 kubectl delete fleet sd-agones-fleet
 ```
+### 如何保持sd-webui settings里的设置？
+有两种方式 \
+1. 设置config.json/ui-config.json的golden copy并打包到容器中
+需要设置的项往往集中在其中几项目（e.g. UI中开启VAE选择、设置CLIP Skip、设置multi-controlnet等），且不需要频繁修改。
+该方式实施简单，因此作为推荐选项
+
+2. 使用另外一种部署方式（跳转到该[分支](https://github.com/nonokangwei/Stable-Diffusion-on-GCP/tree/Stable-Diffusion-on-GCP-X)）
+该分支可以做到为各个pod独立初始化各自的环境，包括持久化各自的config.json/ui-config.json，但不支持设置buffer size，资源都需要按需初始化，以及额外的部署步骤。

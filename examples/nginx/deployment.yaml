@@ -17,6 +17,7 @@ spec:
       containers:
       - name: stable-diffusion-nginx
         image: us-central1-docker.pkg.dev/dave-selfstudy01/hzchen-repo/sd-nginx:0.1
+        imagePullPolicy: Always
         ports:
           - containerPort: 8080
       nodeSelector:

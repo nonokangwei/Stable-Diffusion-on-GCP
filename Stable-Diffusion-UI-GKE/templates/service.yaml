@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-kind: PersistentVolumeClaim
 apiVersion: v1
+kind: Service
 metadata:
-  name: $fileshare_name # e.g. sdpvc
+  name: stable-diffusion-service
+  labels:
+    app: stable-diffusion
 spec:
-  accessModes:
-  - ReadWriteMany
-  storageClassName: ""
-  volumeName: filestore-nfs-pv
-  resources:
-    requests:
-      storage: 1Ti
+  ports:
+  - protocol: TCP
+    port: 7860
+    targetPort: 7860
+  selector:
+    app: stable-diffusion
+  type: LoadBalancer

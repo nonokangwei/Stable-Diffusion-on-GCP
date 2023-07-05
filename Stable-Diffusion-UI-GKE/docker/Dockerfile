@@ -1,9 +1,23 @@
-# FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+# FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
-    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev ffmpeg libsm6 libxext6 && \
+    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev ffmpeg libsm6 libxext6 libtcmalloc-minimal4 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install torch torchvision --prefer-binary
@@ -37,11 +51,14 @@ RUN set -ex && cd stable-diffusion-webui \
     && git -C /stable-diffusion-webui/extensions/sd-webui-infinite-image-browsing checkout 4720b15126c3ee05e97d50108050d1178e50639b \
     && git clone https://github.com/aria1th/Hypernetwork-MonkeyPatch-Extension.git extensions/Hypernetwork-MonkeyPatch-Extension \
     && git clone https://github.com/butaixianran/Stable-Diffusion-Webui-Civitai-Helper.git extensions/Stable-Diffusion-Webui-Civitai-Helper \
-    && git clone https://github.com/ilian6806/stable-diffusion-webui-state.git extensions/stable-diffusion-webui-state \
-    && git clone https://github.com/continue-revolution/sd-webui-segment-anything extensions/sd-webui-segment-anything
+    && git clone https://github.com/ilian6806/stable-diffusion-webui-state.git extensions/stable-diffusion-webui-state
+    # && git clone https://github.com/continue-revolution/sd-webui-segment-anything extensions/sd-webui-segment-anything
 
 RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
-RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-segment-anything/requirements.txt --prefer-binary
+# RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-segment-anything/requirements.txt --prefer-binary
+
+ENV SAFETENSORS_FAST_GPU=1
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4"
 
 EXPOSE 7860
 

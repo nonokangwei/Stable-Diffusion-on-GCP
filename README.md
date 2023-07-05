@@ -11,7 +11,6 @@ This guide provides you steps to deploy a Stable Diffusion WebUI solution in you
 | [Stable-Diffusion-UI-GKE](./Stable-Diffusion-UI-GKE/README.md) | Demo with all the YAML files and Dockerfiles for hosting Stable Diffusion WebUI using GKE. |
 | [Stable-Diffusion-Vertex](./Stable-Diffusion-Vertex/README.md) | Reference codes for DreamBooth & Lora training on Vertex AI |
 | [terraform-provision-infra](./terraform-provision-infra/README.md) | Terraform scripts and resources to create the demo environment. |
-| [examples](./examples) | Example folder for a working directory | 
 
 ## Introduction
    This project demos how to effectively host the popular AUTOMATIC1111 web interface [Stable-Diffusion-WebUI](https://github.com/AUTOMATIC11111/stable-diffusion-webui).
@@ -39,13 +38,19 @@ This guide provides you steps to deploy a Stable Diffusion WebUI solution in you
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
 ![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
-* Recommended for serving as a Saas platform
+* Recommended for serving as a Saas platform for internal use
 * Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
 * Scaling with HPA with GPU metrics
 * Inference on WebUI, but suitable for training
 * Supplementary Dreambooth/Lora Training on Vertex AI
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
+
+![As an external Saas platform](Stable-Diffusion-UI-GKE/images/sd-webui-external-gke.png)
+* Recommend for serving as an external Saas platform
+* You build you own webui and backend(probably), and decouple them with a message queue service(e.g Pub/sub)
+* Building your backend pipeline can be more flexible and more cost effective(e.g. TensorRT)
+* sd-webui now also support [API mode](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
 ## FAQ
 ### Does it support multi-users/sessions?

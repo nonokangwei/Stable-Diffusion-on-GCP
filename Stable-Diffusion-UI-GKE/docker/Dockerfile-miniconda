@@ -43,7 +43,8 @@ RUN . /root/.bashrc \
     && python3 -m pip install git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b --prefer-binary \
     && python3 -m pip install --pre xformers --prefer-binary \
     && python3 -m pip install pyngrok --prefer-binary \
-    && git -C https://github.com/AUTOMATIC1111/stable-diffusion-webui.git checkout 89f9faa63388756314e8a1d96cf86bf5e0663045 \
+    && git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git \
+    && git -C /stable-diffusion-webui checkout 89f9faa63388756314e8a1d96cf86bf5e0663045 \
     && git clone https://github.com/Stability-AI/stablediffusion.git /stable-diffusion-webui/repositories/stable-diffusion-stability-ai \
     && git -C /stable-diffusion-webui/repositories/stable-diffusion-stability-ai checkout cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf \
     && git clone https://github.com/CompVis/taming-transformers.git /stable-diffusion-webui/repositories/taming-transformers \

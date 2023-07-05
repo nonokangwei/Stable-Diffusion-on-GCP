@@ -39,13 +39,19 @@ This guide provides you steps to deploy a Stable Diffusion WebUI solution in you
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
 ![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
-* Recommended for serving as a Saas platform
+* Recommended for serving as a Saas platform for internal use
 * Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
 * Scaling with HPA with GPU metrics
 * Inference on WebUI, but suitable for training
 * Supplementary Dreambooth/Lora Training on Vertex AI
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
+
+![As an external Saas platform](Stable-Diffusion-UI-GKE/images/sd-webui-external-gke.png)
+* Recommend for serving as an external Saas platform
+* You build you own webui and backend(probably), and decouple them with a message queue service(e.g Pub/sub)
+* Building your backend pipeline can be more flexible and more cost effective(e.g. TensorRT)
+* sd-webui now also support [API mode](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
 ## FAQ
 ### Does it support multi-users/sessions?

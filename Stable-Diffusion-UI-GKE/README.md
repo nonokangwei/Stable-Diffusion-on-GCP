@@ -7,13 +7,19 @@ This guide provides you steps to deploy a Stable Diffusion WebUI in your Google 
 
 ## Introduction
 ![GKE](./images/sd-webui-gke.png)
-* Recommended for serving as a Saas platform
+* Recommended for serving as a Saas platform for internal use, and this is what the following content is about.
 * Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
 * Scaling with HPA with GPU metrics
 * Inference on WebUI, but suitable for training
 * Supplementary Dreambooth/Lora Training on Vertex AI
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
+
+![As an external Saas platform](./images/sd-webui-external-gke.png)
+* Recommend for serving as an external Saas platform
+* You build you own webui and backend(probably)
+* Building your backend pipeline can be more flexible and more cost effective(e.g. TensorRT)
+* sd-webui now also support [API mode](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
 ## How To
 
@@ -53,15 +59,13 @@ export CLIENT_PER_GPU=<the maximum number of containers that will share each phy
 ## Create GKE Cluster
 The below command creates a GKE standard cluster with [NVIDIA T4](https://www.nvidia.com/en-us/data-center/tesla-t4/) GPU. GKE standard clusters support all [GPU  types](https://cloud.google.com/compute/docs/gpus) that are supported by Compute Engine, therefore you can adjust the configuration and choose the appropriate GPU type based on the resource needs of your workload. We will also enable the [Filestore CSI driver](https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/filestore-csi-driver) for saving and sharing models and output files. Furthermore, We will also utilise the [GPU time-sharing](https://cloud.google.com/kubernetes-engine/docs/how-to/timesharing-gpus#enable-cluster) feature in GKE to let you more efficiently use your attached GPUs and save running costs.
 
-In our example, we will use a custom intance type which is 4c48Gi, since we are going to assign 2c22Gi to each pod.
-
 **NOTE: If you are creating a private GKE cluster, create [Cloud NAT gateway](https://cloud.google.com/nat/docs/gke-example#create-nat) to ensure that you node pool has access to the internet.**
 
 ```shell
 #[option A] gcloud example for creating a regional cluster with high availability
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --region ${REGION} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
-    --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \
+    --no-enable-basic-auth --release-channel "None" \
+    --machine-type "n1-standard-4" --accelerator "type=nvidia-tesla-t4,count=1" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
     --num-nodes "1" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-private-nodes \
@@ -74,12 +78,18 @@ gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME
     --autoprovisioning-scopes=https://www.googleapis.com/auth/cloud-platform --no-enable-autoprovisioning-autorepair \
     --enable-autoprovisioning-autoupgrade --autoprovisioning-max-surge-upgrade 1 --autoprovisioning-max-unavailable-upgrade 0 \
     --enable-vertical-pod-autoscaling --enable-shielded-nodes
+```
+**NOTE: if you want to enable Time-sharing GPU, update above parameters with below value to run two pod with two logic GPUs on one n1-standard-8 with 1 T4 GPU.**
+```
+--machine-type "n1-standard-8" \
+--accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}"
+```
 
-
+```shell
 #[option B] gcloud example for creating a zonal cluster
 gcloud beta container --project ${PROJECT_ID} clusters create ${GKE_CLUSTER_NAME} --zone ${ZONE} \
-    --no-enable-basic-auth --cluster-version "1.24.9-gke.3200" --release-channel "None" \
-    --machine-type "custom-4-49152-ext" --accelerator "type=nvidia-tesla-t4,count=1,gpu-sharing-strategy=time-sharing,max-shared-clients-per-gpu=${CLIENT_PER_GPU}" \
+    --no-enable-basic-auth --release-channel "None" \
+    --machine-type "n1-standard-4" --accelerator "type=nvidia-tesla-t4,count=1" \
     --image-type "COS_CONTAINERD" --disk-type "pd-balanced" --disk-size "100" \
     --metadata disable-legacy-endpoints=true --scopes "https://www.googleapis.com/auth/cloud-platform" \
     --num-nodes "1" --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM --enable-private-nodes \
@@ -168,6 +178,16 @@ gcloud container clusters update ${GKE_CLUSTER_NAME} --enable-autoscaling --node
 gcloud container clusters update ${GKE_CLUSTER_NAME} --enable-autoscaling --node-pool=default-pool --min-nodes=0 --max-nodes=5 ---zone ${ZONE}
 ```
 
+## Apply deployment and service
+```shell
+cp ./Stable-Diffusion-UI-Novel/templates/* /Stable-Diffusion-UI-Novel/kubernetes/
+# Edit variables in yaml files
+# In practice you may have to deploy one deployment & service for each model
+# different model share different NFS folder
+kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/deployment.yaml
+kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/service.yaml
+```
+
 ## Enable Horizonal Pod autoscaling(HPA)
 The [Horizontal Pod Autoscaler](https://cloud.google.com/kubernetes-engine/docs/concepts/horizontalpodautoscaler) changes the shape of your Kubernetes workload by automatically increasing or decreasing the number of Pods in response to the workload's CPU or memory consumption, or in response to custom metrics reported from within Kubernetes or external metrics from sources outside of your cluster.
 Install the stackdriver adapter to enable the stable-diffusion deployment scale with GPU usage metrics.
@@ -180,8 +200,10 @@ kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stack
 ```
 
 Deploy horizonal pod autoscaler policy on the Stable Diffusion deployment
-```
+```shell
 kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hpa.yaml
+# or below if time-sharing is enabled
+kubectl apply -f ./Stable-Diffusion-UI-Novel/kubernetes/hpa-timeshare.yaml
 ```
 **Note: If the GPU time-sharing feature is enabled in GKE clsuter, please use the hpa-timeshare.yaml, make sure to substitude the GKE_CLUSTER_NAME in the YAML file.**
 

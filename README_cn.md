@@ -40,13 +40,19 @@
 * 没有针对 AUTOMATIC1111 webui 的侵入式更改，易于升级或使用 Dockerfile 安装插件(extensions)
 
 ![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
-* 推荐作为 SaaS 平台
+* 推荐作为 SaaS 平台，由于使用sd-webui，因此适合内部使用
 * 架构 GKE + GPU(可选分时) + Spot(可选) + HPA + Vertex AI 补充 Dreambooth/Lora训练
 * 多用户不冲突，一个机型一个部署，使用不同挂载点区分机型
 * 使用具有 GPU 指标的 HPA 进行扩展
 * 适合做WebUI上的推理，但不适合训练，因训练时会独占整个GPU设备
 * 使用 Vertex AI 来做 Dreambooth/Lora 的训练
 * 没有针对 AUTOMATIC1111 webui 的侵入式更改，易于升级或使用 Dockerfile 安装插件(extensions)
+
+![As an external Saas platform](Stable-Diffusion-UI-GKE/images/sd-webui-external-gke.png)
+* 可用作对外 Saas 服务的架构
+* 您需要构建自己的前端和后端（推荐），前后端之间通过队列服务做解耦
+* 构建自己的后端推理流水线可以让后端的功能改造更灵活，以及更多的性能优化空间（如使用TensorRT）
+* sd-webui 现在也支持[API 模式](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
 ## 常问问题
 ### 它是否支持多用户/会话？

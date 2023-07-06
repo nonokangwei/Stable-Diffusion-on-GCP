@@ -1,4 +1,0 @@
-一些坑：
-1. peft多GPU跑不起来，一直超时，怀疑是多卡之间状态无法同步导致超时
-2. peft生成的模型文件，不知道怎么转换成safetensors，只能用peft自带的库读取
-3. Diffusers text-to-image 2T4，2V100，都报Cuda OOM，但单台V100就不会。github上面说这个模型需要跑在24GB以上GPU

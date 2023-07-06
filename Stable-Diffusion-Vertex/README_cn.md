@@ -76,7 +76,7 @@ Vertex AI 提供[托管训练服务](https://cloud.google.com/vertex-ai/docs/tra
 
 ### 在 Vertex AI 定制化训练服务上微调stable diffusion模型
 
-1. 将训练图片上传到云存储，用户可以仅以本仓库中的狗图片为例。每种训练方法都有自己的数据格式要求。
+1. 将训练图片上传到云存储，用户可以仅以常用的[五张狗图片](https://huggingface.co/datasets/diffusers/dog-example)为例。你可以下载这五张图把它存储在该repo的子文件夹dog_images中。每种训练方法都有自己的数据格式要求。
 - Diffusers和PEFT Dreambooth，以及 Dreambooth Lora：文件夹中仅包含图像
 - Diffusers Text-to-image和Text-to-image Lora：文件夹中包含图像和 metadata.jsonl。可以参考*Diffusers* 文件夹中的metadata.jsonl 文件。
 ```

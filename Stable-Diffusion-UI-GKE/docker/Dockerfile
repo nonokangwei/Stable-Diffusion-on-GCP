@@ -1,9 +1,23 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 # FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
-    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev ffmpeg libsm6 libxext6 && \
+    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev ffmpeg libsm6 libxext6 libtcmalloc-minimal4 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install torch torchvision --prefer-binary
@@ -42,6 +56,9 @@ RUN set -ex && cd stable-diffusion-webui \
 
 RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
 # RUN python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-segment-anything/requirements.txt --prefer-binary
+
+ENV SAFETENSORS_FAST_GPU=1
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4"
 
 EXPOSE 7860
 

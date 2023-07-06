@@ -1,8 +1,22 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
 
 RUN set -ex && \
     apt update && \
-    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev libxext6 && \
+    apt install -y wget git python3 python3-venv python3-pip libglib2.0-0 pkg-config libcairo2-dev libxext6 libtcmalloc-minimal4 && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PATH="/root/miniconda3/bin:${PATH}"
@@ -29,7 +43,8 @@ RUN . /root/.bashrc \
     && python3 -m pip install git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b --prefer-binary \
     && python3 -m pip install --pre xformers --prefer-binary \
     && python3 -m pip install pyngrok --prefer-binary \
-    && git -C https://github.com/AUTOMATIC1111/stable-diffusion-webui.git checkout 89f9faa63388756314e8a1d96cf86bf5e0663045 \
+    && git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git \
+    && git -C /stable-diffusion-webui checkout 89f9faa63388756314e8a1d96cf86bf5e0663045 \
     && git clone https://github.com/Stability-AI/stablediffusion.git /stable-diffusion-webui/repositories/stable-diffusion-stability-ai \
     && git -C /stable-diffusion-webui/repositories/stable-diffusion-stability-ai checkout cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf \
     && git clone https://github.com/CompVis/taming-transformers.git /stable-diffusion-webui/repositories/taming-transformers \
@@ -56,6 +71,9 @@ RUN set -ex && cd stable-diffusion-webui \
 
 RUN . /root/.bashrc \
     && python3 -m pip install -r /stable-diffusion-webui/extensions/sd-webui-controlnet/requirements.txt --prefer-binary
+
+ENV SAFETENSORS_FAST_GPU=1
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4"
 
 # COPY extensions/ /stable-diffusion-webui/extensions/
 # COPY user-watch.py /stable-diffusion-webui/user-watch.py

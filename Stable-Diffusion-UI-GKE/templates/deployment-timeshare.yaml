@@ -28,6 +28,9 @@ spec:
       labels:
         app: stable-diffusion
     spec:
+      nodeSelector:
+        cloud.google.com/gke-gpu-sharing-strategy: time-sharing
+        cloud.google.com/gke-max-shared-clients-per-gpu: "2"
       volumes:
         - name: stable-diffusion-storage
           persistentVolumeClaim:
@@ -42,7 +45,7 @@ spec:
             nvidia.com/gpu: 1
         ports:
           - containerPort: 7860
-        volumeMounts:
+          volumeMounts:
           - mountPath: "/stable-diffusion-webui/models/Stable-diffusion"
             name: stable-diffusion-storage
             subPath: models/Stable-diffusion/sd15

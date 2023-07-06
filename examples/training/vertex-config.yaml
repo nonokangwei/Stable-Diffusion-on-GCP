@@ -1,8 +1,0 @@
-workerPoolSpecs:
-  machineSpec:
-    machineType: n1-standard-8
-    acceleratorType: NVIDIA_TESLA_T4
-    acceleratorCount: 2
-  replicaCount: 1
-  containerSpec:
-    imageUri: us-central1-docker.pkg.dev/PROJECT_ID/ARTIFACT_REGISTRY_ID/sd-training:kohya

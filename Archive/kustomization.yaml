@@ -1,7 +1,0 @@
-commonLabels:
-  instance: stable-diffusion-deployment-4
-nameSuffix: "-4"
-resources:
-- deployment.yaml
-- pvc.yaml
-- service.yaml

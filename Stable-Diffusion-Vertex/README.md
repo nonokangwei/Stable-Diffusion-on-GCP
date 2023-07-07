@@ -76,7 +76,7 @@ Vertex AI provides a [managed training service](https://cloud.google.com/vertex-
 
 ### Fine-tune stable diffusion model on Vertex AI customer training
 
-1. Upload training images to Cloud Storage, users can just use the dog images in this repo as an example. Each training method has its own data format requirements.
+1. Upload training images to Cloud Storage, users can just use the five popular [dog images](https://huggingface.co/datasets/diffusers/dog-example) as an example. You can download and put them in a subfolder named *dog_images* in this folder. Each training method has its own data format requirements.
 - Diffusers and PEFT Dreambooth, and Dreambooth Lora: images in the folder
 - Diffusers Text-to-Image, and Text-to-Image Lora: images and metadata.jsonl in the folder. The metadata.jsonl file can be referenced in *Diffusers* folder.
 ```

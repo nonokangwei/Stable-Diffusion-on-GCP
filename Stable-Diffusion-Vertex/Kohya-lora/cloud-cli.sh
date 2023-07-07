@@ -28,7 +28,7 @@ gcloud ai custom-jobs create  \
   --region=us-central1   \
   --display-name=sd-kohya   \
   --config=vertex-config-nfs.yaml   \
-  --args="--method=kohya_lora,--model_name=CompVis/stable-diffusion-v1-4,--input_storage=/gcs/sd_lsj/input_dog_kohya,--output_storage=/gcs/sd_lsj/kohya_output,--display_name=sks_dog,--save_nfs=True" \
+  --args="--method=kohya_lora,--model_name=CompVis/stable-diffusion-v1-4,--input_storage=/gcs/sd/input_dog_kohya,--output_storage=/gcs/sd/kohya_output,--display_name=sks_dog,--save_nfs=True" \
   --command="python3,train_kohya.py"
 
 # only save the models in GCS to Filestore
@@ -36,5 +36,5 @@ gcloud ai custom-jobs create  \
   --region=us-central1   \
   --display-name=sd-kohya   \
   --config=vertex-config-nfs.yaml   \
-  --args="--output_storage=/gcs/sd_lsj/kohya_output,--save_nfs_only=True" \
+  --args="--output_storage=/gcs/sd/kohya_output,--save_nfs_only=True" \
   --command="python3,train_kohya.py"

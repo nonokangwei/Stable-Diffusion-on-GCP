@@ -55,7 +55,9 @@ RUN pip install google-cloud-storage
 
 # Copies the trainer code to the docker image.
 COPY train_diffusers.py /root/train.py
-COPY train_dreambooth.py /root/diffusers/examples/dreambooth/train_dreambooth.py
+COPY train_dreambooth.patch /tmp/train_dreambooth.patch
+RUN cd /root/diffusers/; patch -p1 < /tmp/train_dreambooth.patch
+
 # Sets up the entry point to invoke the trainer.
 #ENTRYPOINT ["python3", "-m", "train"]
 

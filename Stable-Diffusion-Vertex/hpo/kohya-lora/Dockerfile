@@ -22,6 +22,7 @@ WORKDIR /root
 RUN git clone --recurse-submodules https://github.com/Akegarasu/lora-scripts
 WORKDIR lora-scripts
 RUN git checkout 1a483a0fd9aa1257b0bb4cfe5314054564675121
+RUN git submodule update
 
 WORKDIR /root
 #install libraries
@@ -59,6 +60,7 @@ RUN pip install torch==2.0.0+cu118 torchvision==0.15.1+cu118 --extra-index-url h
 
 # Copies the trainer code to the docker image.
 COPY train_kohya.py /root/train_kohya.py
-COPY train_network.py /root/lora-scripts/sd-scripts/train_network.py
+COPY train_network.patch /tmp/train_network.patch
+RUN cd /root/lora-scripts/sd-scripts/; patch -p1 < /tmp/train_network.patch
 # Sets up the entry point to invoke the trainer.
 #ENTRYPOINT ["python3", "-m", "train_kohya"]

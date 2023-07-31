@@ -114,7 +114,7 @@ kubectl delete fleet sd-agones-fleet
 Two ways to do it
 1. Setup golden copy of config.json/ui-config.json and include them in the Docker image.
 The items that need to be set are often concentrated in a few of them (e.g. enabling VAE selection in the UI, setting CLIP Skip, setting multi-controlnet, etc.), and do not require frequent modification. \
-This method is simple to implement and is therefore the recommended option. \
+This method is simple to implement and is therefore the recommended option.
 
 2. Use another deployment method (jump to this [branch](https://github.com/nonokangwei/Stable-Diffusion-on-GCP/tree/Stable-Diffusion-on-GCP-X))
 This branch can independently initialize their respective environments for each pod, including persisting their respective config.json/ui-config.json, but does not support setting the buffer size, resources need to be initialized on demand, and additional deployment steps are required.

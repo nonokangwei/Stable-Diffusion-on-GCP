@@ -1,3 +1,7 @@
+# ⛔️ DEPRECATED
+
+**This repository is now deprecated. We moved to a new repository** [**here**](https://github.com/GoogleCloudPlatform/stable-diffusion-on-gcp).
+
 # Stable Diffusion WebUI on Google Cloud 快速入门指南
 
 本指南为您提供了在 Google Cloud 项目中部署 Stable Diffusion WebUI 解决方案的步骤。

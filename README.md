@@ -1,3 +1,8 @@
+
+# ⛔️ DEPRECATED
+
+**This repository is now deprecated. We moved to a new repository** [**here**](https://github.com/GoogleCloudPlatform/stable-diffusion-on-gcp).
+
 # Stable Diffusion WebUI on Google Cloud Quick Start Guide
 
 This guide provides you steps to deploy a Stable Diffusion WebUI solution in your Google Cloud Project.
@@ -39,13 +44,19 @@ This guide provides you steps to deploy a Stable Diffusion WebUI solution in you
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
 
 ![GKE](Stable-Diffusion-UI-GKE/images/sd-webui-gke.png)
-* Recommended for serving as a Saas platform
+* Recommended for serving as a Saas platform for internal use
 * Architecture GKE + GPU(optional time sharing) + Spot(optional) + HPA + Vertex AI for supplementary Dreambooth/Lora training
 * No conflicts for multiple users, one deployment per model, use different mount point to distinguish models
 * Scaling with HPA with GPU metrics
 * Inference on WebUI, but suitable for training
 * Supplementary Dreambooth/Lora Training on Vertex AI
 * No intrusive change against AUTOMATIC1111 webui, easy to upgrade or install extensions with Dockerfile
+
+![As an external Saas platform](Stable-Diffusion-UI-GKE/images/sd-webui-external-gke.png)
+* Recommend for serving as an external Saas platform
+* You build you own webui and backend(probably), and decouple them with a message queue service(e.g Pub/sub)
+* Building your backend pipeline can be more flexible and more cost effective(e.g. TensorRT)
+* sd-webui now also support [API mode](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API).
 
 ## FAQ
 ### Does it support multi-users/sessions?
@@ -108,7 +119,7 @@ kubectl delete fleet sd-agones-fleet
 Two ways to do it
 1. Setup golden copy of config.json/ui-config.json and include them in the Docker image.
 The items that need to be set are often concentrated in a few of them (e.g. enabling VAE selection in the UI, setting CLIP Skip, setting multi-controlnet, etc.), and do not require frequent modification. \
-This method is simple to implement and is therefore the recommended option. \
+This method is simple to implement and is therefore the recommended option.
 
 2. Use another deployment method (jump to this [branch](https://github.com/nonokangwei/Stable-Diffusion-on-GCP/tree/Stable-Diffusion-on-GCP-X))
 This branch can independently initialize their respective environments for each pod, including persisting their respective config.json/ui-config.json, but does not support setting the buffer size, resources need to be initialized on demand, and additional deployment steps are required.
